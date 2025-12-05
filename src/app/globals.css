@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+	--color-primary: var(--color-emerald-600);
+	--color-secondary: var(--color-rose-500);
+
+	--default-transition-duration: 400ms;
+	--default-transition-timing-function: ease-in-out;
+}
+
+html {
+	@apply text-white;
+	background: radial-gradient(circle at 10% 20%, rgba(58, 99, 208, 0.35), transparent 45%),
+		radial-gradient(circle at 80% 0%, rgba(241, 114, 182, 0.4), transparent 55%),
+		radial-gradient(circle at 50% 80%, rgba(54, 217, 182, 0.25), transparent 50%),
+		linear-gradient(135deg, #050505, #0f1016 40%, #111827 75%);
+	min-height: 100%;
+}
+
+body {
+	@apply px-8;
+	font-size: 20px;
+	margin: 0 auto;
+}
+
+input,
+button {
+	font-size: 20px;
+}
+
+h1 {
+	@apply text-4xl;
+}
+
+h2 {
+	@apply text-2xl;
+}
