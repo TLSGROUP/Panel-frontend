@@ -6,7 +6,7 @@ import { protectAdminPages } from './server-actions/middlewares/protect-admin.mi
 import { protectDashboardPages } from './server-actions/middlewares/protect-dashboard.middleware'
 import { protectLoginPages } from './server-actions/middlewares/protect-login.middleware'
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
 	const pathname = request.nextUrl.pathname
 
 	if (pathname.startsWith(PUBLIC_PAGES.AUTH)) {
