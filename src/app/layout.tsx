@@ -3,6 +3,7 @@ import { Fira_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './Providers'
 import { LanguagePicker } from '@/components/language/LanguagePicker'
+import { Toaster } from 'react-hot-toast'
 
 const FiraMono = Fira_Mono({
 	subsets: ['cyrillic', 'latin'],
@@ -29,6 +30,7 @@ export default function RootLayout({
 							{children}
 						</main>
 					</>
+					<Toaster />
 				</Providers>
 			</body>
 		</html>
