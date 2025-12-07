@@ -6,6 +6,7 @@ export interface IUser {
 	name?: string
 	email: string
 	avatarPath?: string
+	country?: string
 	verificationToken?: string
 	rights: UserRole[]
 	language: Language
