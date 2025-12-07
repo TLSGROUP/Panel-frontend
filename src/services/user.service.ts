@@ -1,6 +1,17 @@
 import { instance } from '@/api/axios'
 import { IUser } from '@/types/user.types'
 
+export interface IPaginationResponse<T> {
+	data: T[]
+	isHasMore: boolean
+}
+
+export interface IPaginationParams {
+	skip?: number
+	take?: number
+	searchTerm?: string
+}
+
 class UserService {
 	private _BASE_URL = '/users'
 
