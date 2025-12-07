@@ -6,6 +6,7 @@ import { getTokensFromRequest } from './utils/get-tokens-from-request'
 import { jwtVerifyServer } from './utils/jwt-verify'
 import { redirectToLoginOrNotFound } from './utils/redirect-to-login-or-404'
 
+// Middleware для защиты приватных dashboard страниц
 export async function protectDashboardPages(request: NextRequest) {
 	const tokens = await getTokensFromRequest(request)
 	if (!tokens) return redirectToLoginOrNotFound(request)

@@ -2,6 +2,7 @@ import { AuthToken } from '@/types/auth.types'
 import { NextRequest } from 'next/server'
 import { getNewTokensByRefresh } from './get-new-tokens-by-refresh'
 
+// Достаём access/refresh токены из NextRequest и при необходимости обновляем access
 export async function getTokensFromRequest(request: NextRequest) {
 	const refreshToken = request.cookies.get(AuthToken.REFRESH_TOKEN)?.value
 	let accessToken = request.cookies.get(AuthToken.ACCESS_TOKEN)?.value

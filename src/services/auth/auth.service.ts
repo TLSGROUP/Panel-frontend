@@ -14,6 +14,7 @@ interface IAuthResponse {
 }
 
 class AuthService {
+	// Универсальный метод для логина/регистрации
 	async main(
 		type: 'login' | 'register',
 		data: IFormData,
@@ -36,6 +37,7 @@ class AuthService {
 		return response
 	}
 
+	// Получаем новую пару токенов через refresh
 	async getNewTokens() {
 		const response = await axiosClassic.post<IAuthResponse>(
 			'/auth/access-token'
@@ -47,6 +49,7 @@ class AuthService {
 		return response
 	}
 
+	// Выходим из аккаунта и чистим токен
 	async logout() {
 		const response = await axiosClassic.post<boolean>('/auth/logout')
 
@@ -55,6 +58,7 @@ class AuthService {
 		return response
 	}
 
+	// Запрашиваем/верифицируем/применяем сброс пароля
 	async requestPasswordReset(dto: IPasswordResetRequest) {
 		return axiosClassic.post('/auth/password/forgot', dto)
 	}

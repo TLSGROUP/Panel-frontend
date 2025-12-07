@@ -1,7 +1,9 @@
+// Стандартные заголовки для JSON-запросов
 export const getContentType = () => ({
 	'Content-Type': 'application/json'
 })
 
+// Приводим ошибку axios к читабельному сообщению
 export const errorCatch = (error: any): string => {
 	const message = error?.response?.data?.message
 

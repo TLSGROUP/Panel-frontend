@@ -8,10 +8,12 @@ import { type PropsWithChildren, useState } from 'react'
 import { Toaster } from 'react-hot-toast'
 
 export function Providers({ children }: PropsWithChildren) {
+	// Создаём клиент React Query единожды на всё приложение
 	const [client] = useState(new QueryClient())
 
 	return (
 		<LanguageProvider>
+			{/* Провайдеры глобального состояния, анимаций и уведомлений */}
 			<QueryClientProvider client={client}>
 				<LazyMotion features={domAnimation}>{children}</LazyMotion>
 				<Toaster />

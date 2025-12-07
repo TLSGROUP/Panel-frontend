@@ -8,6 +8,7 @@ export type TUserDataState = {
 	isManager: boolean
 }
 
+// Помогаем определить статус пользователя (админ/менеджер/авторизован)
 export const transformUserToState = (
 	user: TProtectUserData
 ): TUserDataState | null => {

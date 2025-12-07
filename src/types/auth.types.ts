@@ -1,7 +1,7 @@
 import { IUser } from './user.types'
 import type { Language } from '@/i18n/config'
 
-// Почему ENUM именно так (7:16) - https://www.youtube.com/watch?v=XdhhCIIksPw
+// Названия cookie/param для access/refresh токенов
 export const AuthToken = {
 	ACCESS_TOKEN: 'accessToken',
 	REFRESH_TOKEN: 'refreshToken'
@@ -9,6 +9,7 @@ export const AuthToken = {
 
 export type AuthToken = (typeof AuthToken)[keyof typeof AuthToken]
 
+// Роли пользователя
 export const UserRole = {
 	USER: 'USER',
 	MANAGER: 'MANAGER',
@@ -17,6 +18,7 @@ export const UserRole = {
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
+// Payload, который возвращает JWT
 export interface ITokenInside {
 	id: number
 	rights: UserRole[]
@@ -26,11 +28,13 @@ export interface ITokenInside {
 
 export type TProtectUserData = Omit<ITokenInside, 'iat' | 'exp'>
 
+// Данные для форм логина/регистрации
 export interface IFormData extends Pick<IUser, 'email' | 'name'> {
 	password: string
 	language?: Language
 }
 
+// DTO для сброса пароля
 export interface IPasswordResetRequest {
 	email: string
 }

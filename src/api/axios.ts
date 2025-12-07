@@ -4,16 +4,20 @@ import authService from '@/services/auth/auth.service'
 import axios, { CreateAxiosDefaults } from 'axios'
 import { errorCatch, getContentType } from './api.helper'
 
+// Базовая конфигурация для всех HTTP инстансов
 const axiosOptions: CreateAxiosDefaults = {
 	baseURL: API_URL,
 	headers: getContentType(),
 	withCredentials: true
 }
 
+// Запросы без авторизации/интерцепторов
 export const axiosClassic = axios.create(axiosOptions)
 
+// Основной инстанс с JWT-интерцепторами
 export const instance = axios.create(axiosOptions)
 
+// Подставляем accessToken в каждый запрос
 instance.interceptors.request.use(config => {
 	const accessToken = authTokenService.getAccessToken()
 
@@ -29,6 +33,7 @@ instance.interceptors.response.use(
 	async error => {
 		const originalRequest = error.config
 
+		// Когда токен протух — пытаемся обновить и повторить запрос
 		if (
 			(error.response.status === 401 ||
 				errorCatch(error) === 'jwt expired' ||

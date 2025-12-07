@@ -7,6 +7,7 @@ import { getTokensFromRequest } from './utils/get-tokens-from-request'
 import { jwtVerifyServer } from './utils/jwt-verify'
 import { nextRedirect } from './utils/next-redirect'
 
+// Не даём авторизованным пользователям видеть login/register
 export async function protectLoginPages(request: NextRequest) {
 	const tokens = await getTokensFromRequest(request)
 	if (!tokens) return NextResponse.next()

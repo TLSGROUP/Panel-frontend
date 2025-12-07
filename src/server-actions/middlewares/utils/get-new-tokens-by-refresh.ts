@@ -8,6 +8,7 @@ interface IAuthResponse {
 	accessToken: string
 }
 
+// Серверный helper: берём новую пару токенов по refresh cookie
 export async function getNewTokensByRefresh(refreshToken: string) {
 	const response = await fetch(`${API_URL}/auth/access-token`, {
 		method: 'POST',

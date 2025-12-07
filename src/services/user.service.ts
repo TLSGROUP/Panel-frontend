@@ -15,18 +15,22 @@ export interface IPaginationParams {
 class UserService {
 	private _BASE_URL = '/users'
 
+	// Профиль текущего пользователя
 	async fetchProfile() {
 		return instance.get<IUser>(`${this._BASE_URL}/profile`)
 	}
 
+	// Контент для менеджеров
 	async fetchManagerContent() {
 		return instance.get<{ text: string }>(`${this._BASE_URL}/manager`)
 	}
 
+	// Список пользователей (админ)
 	async fetchList() {
 		return instance.get<IUser[]>(`${this._BASE_URL}/list`)
 	}
 
+	// Обновление e-mail текущего пользователя
 	async updateUserEmail(email: string) {
 		return instance.patch(`${this._BASE_URL}/update-email`, { email })
 	}

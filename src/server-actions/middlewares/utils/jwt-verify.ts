@@ -4,6 +4,7 @@ import { ITokenInside } from '@/types/auth.types'
 import { transformUserToState } from '@/utils/transform-user-to-state'
 import * as jose from 'jose'
 
+// Проверяем JWT на сервере и приводим payload к нужному виду
 export async function jwtVerifyServer(accessToken: string) {
 	try {
 		const { payload }: { payload: ITokenInside } = await jose.jwtVerify(

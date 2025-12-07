@@ -4,6 +4,7 @@ import { transformUserToState } from '@/utils/transform-user-to-state'
 import { useQuery } from '@tanstack/react-query'
 
 export function useProfile() {
+	// Тянем профиль пользователя с периодическим обновлением
 	const {
 		data,
 		isLoading,
@@ -14,11 +15,8 @@ export function useProfile() {
 		refetchInterval: 1800000 // 30 minutes
 	})
 
-	const {
-		isSuccess,
-		data: dataTokens,
-		refetch: refetchTokens
-	} = useQuery({
+	// Если профиля ещё нет — пробуем обновить токены
+	useQuery({
 		queryKey: ['new tokens'],
 		queryFn: () => authService.getNewTokens(),
 		enabled: !data?.data
