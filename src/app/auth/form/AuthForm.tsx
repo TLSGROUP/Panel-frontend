@@ -32,6 +32,7 @@ export function AuthForm({ isLogin }: Props) {
 				<div className="mb-4">
 					<label className="text-gray-600">
 						{t('nameLabel')}
+						<span className="text-red-500 ml-1">*</span>
 						<input
 							type="text"
 							placeholder={t('namePlaceholder')}
@@ -45,6 +46,7 @@ export function AuthForm({ isLogin }: Props) {
 			<div className="mb-4">
 				<label className="text-gray-600">
 					{t('emailLabel')}
+					<span className="text-red-500 ml-1">*</span>
 					<input
 						type="email"
 						placeholder={t('emailPlaceholder')}
@@ -59,6 +61,7 @@ export function AuthForm({ isLogin }: Props) {
 					<div className="flex items-center justify-between text-sm text-gray-400">
 						<span className="text-base text-gray-600">
 							{t('passwordLabel')}
+							<span className="text-red-500 ml-1">*</span>
 						</span>
 						{isLogin && (
 							<Link
