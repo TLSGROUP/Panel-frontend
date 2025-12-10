@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { AuthPageWrapper } from '../AuthPageWrapper'
-import { PasswordRecoveryForm } from './PasswordRecoveryForm'
+import { PasswordRecoveryForm } from '../form/PasswordRecoveryForm'
 
 export const metadata: Metadata = {
 	title: 'Forgot password'

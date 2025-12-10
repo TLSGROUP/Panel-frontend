@@ -5,7 +5,7 @@ import styles from '../auth/form/AuthForm.module.scss'
 
 import { MiniLoader } from '@/components/ui/MiniLoader'
 import { twMerge } from 'tailwind-merge'
-import { AuthPageWrapper } from '../auth/AuthPageWrapper'
+import { AuthPageWrapper } from '../(auth)/AuthPageWrapper'
 import { useEmailForm } from './useEmailForm'
 
 export default function SocialEmailForm() {

@@ -1,10 +1,9 @@
 class PublicPages {
 	HOME = '/'
 
-	AUTH = '/auth'
-	LOGIN = `${this.AUTH}/login`
-	REGISTER = `${this.AUTH}/register`
-	FORGOT_PASSWORD = `${this.AUTH}/forgot-password`
+	LOGIN = `/login`
+	REGISTER = `/register`
+	FORGOT_PASSWORD = `/restore`
 
 	PLANS = '/plans'
 }
