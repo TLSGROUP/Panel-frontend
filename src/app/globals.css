@@ -18,6 +18,7 @@ html {
 		radial-gradient(circle at 50% 80%, rgba(54, 217, 182, 0.25), transparent 50%),
 		linear-gradient(135deg, #050505, #0f1016 40%, #111827 75%);
 	min-height: 100%;
+	scrollbar-gutter: stable;
 }
 
 body {

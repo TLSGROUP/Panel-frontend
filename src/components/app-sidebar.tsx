@@ -27,11 +27,6 @@ import {
 
 // This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Playground",
@@ -141,17 +136,11 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: profile } = useProfile()
 
-  const sidebarUser = profile?.email
-    ? {
-        name: profile?.name || profile.email,
-        email: profile.email,
-        avatar: profile?.avatarPath || "",
-      }
-    : {
-        name: data.user.name,
-        email: data.user.email,
-        avatar: "",
-      }
+  const sidebarUser = {
+    name: profile?.name || profile?.email || "",
+    email: profile?.email || "",
+    avatar: profile?.avatarPath || "",
+  }
 
   return (
     <Sidebar collapsible="icon" {...props}>

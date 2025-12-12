@@ -40,7 +40,7 @@ export function LanguagePicker({ inline = false, className }: LanguagePickerProp
         className
       )}
     >
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
@@ -55,7 +55,7 @@ export function LanguagePicker({ inline = false, className }: LanguagePickerProp
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent className="w-40 text-xs border border-white/10 bg-black/40 backdrop-blur-md">
+        <DropdownMenuContent className="w-40 text-xs border border-white/10 bg-black/40 backdrop-blur-md overflow-visible" avoidCollisions={true}>
           <DropdownMenuLabel className="text-xs">
             {t('languagePickerLabel')}
           </DropdownMenuLabel>
