@@ -10,7 +10,13 @@ import { protectLoginPages } from './server-actions/middlewares/protect-login.mi
 export async function proxy(request: NextRequest): Promise<NextResponse> {
 	const pathname = request.nextUrl.pathname
 
-	if (pathname.startsWith(PUBLIC_PAGES.AUTH)) {
+	const authPages = [
+		PUBLIC_PAGES.LOGIN,
+		PUBLIC_PAGES.REGISTER,
+		PUBLIC_PAGES.FORGOT_PASSWORD
+	]
+
+	if (authPages.some(page => pathname.startsWith(page))) {
 		return protectLoginPages(request)
 	}
 

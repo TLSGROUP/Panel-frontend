@@ -1,34 +1,36 @@
-import { ADMIN_PAGES } from '@/config/pages/admin.config'
-import { DASHBOARD_PAGES } from '@/config/pages/dashboard.config'
 import { PUBLIC_PAGES } from '@/config/pages/public.config'
-import Link from 'next/link'
+import { getNewTokensByRefresh } from '@/server-actions/middlewares/utils/get-new-tokens-by-refresh'
+import { jwtVerifyServer } from '@/server-actions/middlewares/utils/jwt-verify'
+import { AuthToken } from '@/types/auth.types'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import DashboardPage from './dashboard/page'
 
-const pages = [
-	PUBLIC_PAGES.LOGIN,
-	DASHBOARD_PAGES.PROFILE,
-	ADMIN_PAGES.HOME,
-	ADMIN_PAGES.MANAGER
-]
+export default async function Home() {
+	const cookieStore = await cookies()
+	const refreshToken = cookieStore.get(AuthToken.REFRESH_TOKEN)?.value
+	let accessToken = cookieStore.get(AuthToken.ACCESS_TOKEN)?.value
 
-export default function Home() {
-	return (
-		<div>
-			<h1 className="mt-4">Home Page</h1>
-			<br />
-			<p>Для проверки, есть страницы:</p>
-			<br />
-			<ul className="space-y-2">
-				{pages.map(page => (
-					<li key={page}>
-						<Link
-							className="text-primary hover:underline"
-							href={page}
-						>
-							{page}
-						</Link>
-					</li>
-				))}
-			</ul>
-		</div>
-	)
+	const verifyUser = async (token?: string | null) => {
+		if (!token) return null
+		return await jwtVerifyServer(token)
+	}
+
+	let user = await verifyUser(accessToken)
+
+	if (!user && refreshToken) {
+		try {
+			const tokens = await getNewTokensByRefresh(refreshToken)
+			accessToken = tokens.accessToken
+			user = await verifyUser(accessToken)
+		} catch {
+			// ignore, user stays unauthenticated
+		}
+	}
+
+	if (user?.isLoggedIn) {
+		return <DashboardPage />
+	}
+
+	redirect(PUBLIC_PAGES.LOGIN)
 }
