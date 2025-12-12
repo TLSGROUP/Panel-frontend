@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar"
+import { LanguagePicker } from "@/components/language/LanguagePicker"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,8 +20,8 @@ export default function Page() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 px-4">
+          <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator
               orientation="vertical"
@@ -39,6 +40,9 @@ export default function Page() {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
+          </div>
+          <div className="ml-auto">
+            <LanguagePicker inline />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

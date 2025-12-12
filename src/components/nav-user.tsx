@@ -8,12 +8,16 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
 
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
+import { PUBLIC_PAGES } from "@/config/pages/public.config"
+import authService from "@/services/auth/auth.service"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +44,19 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+  const displayName = user.name?.trim() || user.email
+  const displayEmail = user.email
+  const initials = (displayName || "??").slice(0, 2).toUpperCase()
+  const avatarSrc = user.avatar?.trim() ? user.avatar : undefined
+
+  const { mutate: handleLogout, isPending: isLogoutPending } = useMutation({
+    mutationKey: ["logout"],
+    mutationFn: () => authService.logout(),
+    onSuccess: () => {
+      router.push(PUBLIC_PAGES.LOGIN)
+    },
+  })
 
   return (
     <SidebarMenu>
@@ -51,12 +68,12 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-medium">{displayName}</span>
+                <span className="truncate text-xs">{displayEmail}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -70,12 +87,12 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-medium">{displayName}</span>
+                  <span className="truncate text-xs">{displayEmail}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -102,9 +119,12 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={isLogoutPending}
+              onClick={() => handleLogout()}
+            >
               <LogOut />
-              Log out
+              {isLogoutPending ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

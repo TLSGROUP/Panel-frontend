@@ -35,8 +35,8 @@ export function SocialMediaButtons() {
 						onClick={() => void handleRedirect(id)}
 						disabled={loadingId === id}
 						className={twMerge(
-							'flex items-center justify-center p-2 border border-gray-300 rounded-md shadow-sm font-medium text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 transition hover:scale-105 hover:shadow-lg will-change-transform',
-							loadingId === id && 'bg-white/80 cursor-not-allowed'
+							'flex items-center justify-center p-2 border border-gray-300 rounded-md shadow-sm font-medium text-gray-200 hover:text-white bg-transparent hover:bg-white/10 transition hover:scale-105 hover:shadow-lg will-change-transform',
+							loadingId === id && 'bg-transparent cursor-not-allowed'
 						)}
 						type="button"
 					>

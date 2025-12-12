@@ -1,3 +1,4 @@
+import { LanguagePicker } from '@/components/language/LanguagePicker'
 import { PUBLIC_PAGES } from '@/config/pages/public.config'
 import { AuthToken } from '@/types/auth.types'
 import { jwtVerifyServer } from '@/server-actions/middlewares/utils/jwt-verify'
@@ -17,5 +18,10 @@ export default async function AuthLayout({ children }: PropsWithChildren) {
 		}
 	}
 
-	return <>{children}</>
+	return (
+		<>
+			<LanguagePicker />
+			{children}
+		</>
+	)
 }

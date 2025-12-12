@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
 
 const flags: Record<Language, string> = {
   en: '🇺🇸',
@@ -24,11 +25,21 @@ const flags: Record<Language, string> = {
   // добавь остальные, если нужны
 }
 
-export function LanguagePicker() {
+interface LanguagePickerProps {
+  inline?: boolean
+  className?: string
+}
+
+export function LanguagePicker({ inline = false, className }: LanguagePickerProps = {}) {
   const { language, setLanguage, t } = useLanguage()
 
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div
+      className={cn(
+        inline ? 'inline-flex justify-end items-center' : 'fixed top-4 right-4 z-50',
+        className
+      )}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

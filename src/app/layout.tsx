@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Fira_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './Providers'
-import { LanguagePicker } from '@/components/language/LanguagePicker'
 import { Toaster } from 'react-hot-toast'
 
 const FiraMono = Fira_Mono({
@@ -24,12 +23,9 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={FiraMono.className}>
 				<Providers>
-					<>
-						<LanguagePicker />
-						<main className="flex min-h-screen flex-col items-center justify-between p-8">
-							{children}
-						</main>
-					</>
+					<main className="flex min-h-screen flex-col items-center justify-between p-8">
+						{children}
+					</main>
 					<Toaster />
 				</Providers>
 			</body>
