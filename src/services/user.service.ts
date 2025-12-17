@@ -16,6 +16,19 @@ export interface IUserFormState extends Partial<Omit<IUser, 'id'>> {
 	password?: string
 }
 
+export type UpdateProfilePayload = Partial<{
+	name: string | null
+	lastName: string | null
+	phone: string | null
+	country: string | null
+	city: string | null
+	avatarPath: string | null
+}>
+
+export interface IDetectedCountry {
+	countryCode: string | null
+}
+
 class UserService {
 	private _BASE_URL = '/users'
 
@@ -64,6 +77,15 @@ class UserService {
 	// Обновление e-mail текущего пользователя
 	async updateUserEmail(email: string) {
 		return instance.patch(`${this._BASE_URL}/update-email`, { email })
+	}
+
+	// Обновление личных данных текущего пользователя
+	async updateProfile(payload: UpdateProfilePayload) {
+		return instance.patch<IUser>(`${this._BASE_URL}/profile`, payload)
+	}
+
+	async detectCountryByIp() {
+		return instance.get<IDetectedCountry>(`${this._BASE_URL}/detect-country`)
 	}
 }
 

@@ -3,10 +3,10 @@
 import {
   BadgeCheck,
   Bell,
+  Camera,
   ChevronsUpDown,
   CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
@@ -36,12 +36,14 @@ import {
 
 export function NavUser({
   user,
+  showAttentionIndicator = false,
 }: {
   user: {
     name: string
     email: string
     avatar: string
   }
+  showAttentionIndicator?: boolean
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -58,6 +60,17 @@ export function NavUser({
     },
   })
 
+  const AttentionBadge = () =>
+    showAttentionIndicator ? (
+      <>
+        <span className="sr-only">Profile details required</span>
+        <span
+          aria-hidden
+          className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border border-background bg-destructive"
+        />
+      </>
+    ) : null
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -67,12 +80,22 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
-                {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-                <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-8 w-8 rounded-lg">
+                  {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                  <AvatarFallback className="rounded-lg bg-primary text-primary-foreground text-sm">
+                    {avatarSrc ? (
+                      initials
+                    ) : (
+                      <>
+                        <Camera className="size-4" aria-hidden />
+                        <span className="sr-only">Add a profile photo</span>
+                      </>
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <AttentionBadge />
+              </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{displayName}</span>
                 <span className="truncate text-xs">{displayEmail}</span>
@@ -89,36 +112,44 @@ export function NavUser({
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-                  <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                    <AvatarFallback className="rounded-lg bg-primary text-primary-foreground text-sm">
+                      {avatarSrc ? (
+                        initials
+                      ) : (
+                        <>
+                          <Camera className="size-4" aria-hidden />
+                          <span className="sr-only">Add a profile photo</span>
+                        </>
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                  <AttentionBadge />
+                </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{displayName}</span>
                   <span className="truncate text-xs">{displayEmail}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => router.push("/dashboard/profile")}
+              >
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => router.push("/dashboard/billing")}
+              >
                 <CreditCard />
                 Billing
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => router.push("/dashboard/notifications")}
+              >
                 <Bell />
                 Notifications
               </DropdownMenuItem>

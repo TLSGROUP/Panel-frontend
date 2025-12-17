@@ -4,16 +4,7 @@ import { useEffect, useState } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { LanguagePicker } from "@/components/language/LanguagePicker"
-import { PlanCards, SectionCards } from "@/components/ui/section-cards"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { SectionCards } from "@/components/ui/section-cards"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,6 +13,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
@@ -30,12 +28,19 @@ import {
 } from "@/components/ui/sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export default function Page() {
-  const [cardsReady, setCardsReady] = useState(false)
+const referralLeaders = [
+  { name: "Evelyn Diaz", joined: "Jan 04, 2024", earnings: "$4,900" },
+  { name: "Hiro Sato", joined: "Feb 11, 2024", earnings: "$3,650" },
+  { name: "Lina Ortega", joined: "Mar 28, 2024", earnings: "$2,780" },
+  { name: "Marcus Lee", joined: "May 09, 2024", earnings: "$2,310" },
+]
+
+export default function ReferralsPage() {
+  const [ready, setReady] = useState(false)
   const skeletonCards = Array.from({ length: 4 })
 
   useEffect(() => {
-    const timer = setTimeout(() => setCardsReady(true), 600)
+    const timer = setTimeout(() => setReady(true), 600)
     return () => clearTimeout(timer)
   }, [])
 
@@ -53,13 +58,11 @@ export default function Page() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Dashboard
-                  </BreadcrumbLink>
+                  <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                  <BreadcrumbPage>Referrals</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -69,12 +72,12 @@ export default function Page() {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {cardsReady ? (
+          {ready ? (
             <SectionCards />
           ) : (
             <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4 lg:px-6">
               {skeletonCards.map((_, index) => (
-                <Card key={index} className="@container/card">
+                <Card key={`ref-skeleton-${index}`} className="@container/card">
                   <CardHeader>
                     <CardDescription>
                       <Skeleton className="h-4 w-32 rounded-full" />
@@ -82,48 +85,56 @@ export default function Page() {
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
                       <Skeleton className="h-9 w-24 rounded-md" />
                     </CardTitle>
-                    <CardAction>
-                      <Skeleton className="h-7 w-16 rounded-full" />
-                    </CardAction>
                   </CardHeader>
-                  <CardFooter className="flex-col items-start gap-1.5 text-sm w-full">
-                    <div className="line-clamp-1 flex w-full gap-2 font-medium">
-                      <Skeleton className="h-4 w-3/4 rounded-full" />
-                    </div>
-                    <div className="text-muted-foreground w-full">
-                      <Skeleton className="h-4 w-2/3 rounded-full" />
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-          {cardsReady ? (
-            <PlanCards />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-4 lg:px-6">
-              {skeletonCards.map((_, index) => (
-                <Card key={`plan-${index}`} className="flex flex-col">
-                  <CardHeader>
-                    <CardTitle>
-                      <Skeleton className="h-6 w-24 rounded-md" />
-                    </CardTitle>
-                    <CardDescription>
-                      <Skeleton className="h-4 w-32 rounded-full" />
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-1 flex-col gap-2">
+                  <CardContent className="space-y-3">
                     <Skeleton className="h-4 w-3/4 rounded-full" />
                     <Skeleton className="h-4 w-2/3 rounded-full" />
-                    <Skeleton className="h-4 w-1/2 rounded-full" />
                   </CardContent>
-                  <CardFooter>
-                    <Skeleton className="h-10 w-full rounded-md" />
-                  </CardFooter>
                 </Card>
               ))}
             </div>
           )}
+          <Card>
+            <CardHeader>
+              <CardTitle>Referral leaderboard</CardTitle>
+              <CardDescription>
+                Track who drives the most conversions this quarter.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {ready
+                ? referralLeaders.map((entry) => (
+                    <div
+                      key={entry.name}
+                      className="flex flex-col gap-2 rounded-lg border border-border/60 p-4 @xl:flex-row @xl:items-center @xl:justify-between"
+                    >
+                      <div>
+                        <p className="text-base font-semibold">{entry.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Joined {entry.joined}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">
+                          Total earnings
+                        </p>
+                        <p className="text-2xl font-semibold tabular-nums">
+                          {entry.earnings}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                : Array.from({ length: 4 }).map((_, idx) => (
+                    <div
+                      key={`row-skeleton-${idx}`}
+                      className="flex flex-col gap-2 rounded-lg border border-dashed border-border/80 p-4"
+                    >
+                      <Skeleton className="h-4 w-40 rounded-full" />
+                      <Skeleton className="h-4 w-24 rounded-full" />
+                    </div>
+                  ))}
+            </CardContent>
+          </Card>
         </div>
       </SidebarInset>
     </SidebarProvider>

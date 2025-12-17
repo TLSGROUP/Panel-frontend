@@ -10,8 +10,7 @@ const FiraMono = Fira_Mono({
 })
 
 export const metadata: Metadata = {
-	title: 'Network Pro MLM',
-	description: 'Network Pro MLM dashboard'
+	title: 'Network Pro MLM'
 }
 
 export default function RootLayout({

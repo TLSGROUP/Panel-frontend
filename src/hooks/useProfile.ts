@@ -3,6 +3,9 @@ import userService from '@/services/user.service'
 import { transformUserToState } from '@/utils/transform-user-to-state'
 import { useQuery } from '@tanstack/react-query'
 
+const PROFILE_COMPLETION_FIELDS = ['lastName', 'phone', 'country', 'city'] as const
+type ProfileCompletionField = (typeof PROFILE_COMPLETION_FIELDS)[number]
+
 export function useProfile() {
 	// Тянем профиль пользователя с периодическим обновлением
 	const {
@@ -26,12 +29,20 @@ export function useProfile() {
 
 	const userState = profile ? transformUserToState(profile) : null
 
+	const hasIncompleteProfile =
+		Boolean(profile) &&
+		PROFILE_COMPLETION_FIELDS.some((field: ProfileCompletionField) => {
+			const value = profile?.[field]
+			return typeof value !== 'string' || value.trim() === ''
+		})
+
 	return {
 		isLoading,
 		refetch: refetchProfile,
 		user: {
 			...profile,
 			...userState
-		}
+		},
+		hasIncompleteProfile
 	}
 }

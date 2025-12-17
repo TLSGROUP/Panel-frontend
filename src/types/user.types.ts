@@ -5,9 +5,12 @@ import type { Language } from '@/i18n/config'
 export interface IUser {
 	id: number
 	name?: string
+	lastName?: string
 	email: string
 	avatarPath?: string
 	country?: string
+	city?: string
+	phone?: string
 	verificationToken?: string
 	rights: UserRole[]
 	language: Language

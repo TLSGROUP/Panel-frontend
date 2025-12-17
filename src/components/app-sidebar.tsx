@@ -1,23 +1,13 @@
 "use client"
 
 import * as React from "react"
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react"
+import { usePathname } from "next/navigation"
+import { BadgeCheck, Bell, Bot, CreditCard, SquareTerminal, Wallet } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { useProfile } from "@/hooks/useProfile"
+import { getMediaUrl } from "@/utils/get-media-url"
 import {
   Sidebar,
   SidebarContent,
@@ -29,127 +19,65 @@ import {
 const data = {
   navMain: [
     {
-      title: "Playground",
-      url: "#",
+      title: "Dashboard",
+      url: "/dashboard",
       icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
     },
     {
-      title: "Models",
-      url: "#",
+      title: "Referrals",
+      url: "/dashboard/referrals",
       icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
+      title: "Wallet",
+      url: "/dashboard/wallet",
+      icon: Wallet,
     },
     {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
+      title: "Account",
+      url: "/dashboard/profile",
+      icon: BadgeCheck,
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
+      title: "Billing",
+      url: "/dashboard/billing",
+      icon: CreditCard,
     },
     {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      title: "Notifications",
+      url: "/dashboard/notifications",
+      icon: Bell,
     },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user: profile } = useProfile()
+  const { user: profile, hasIncompleteProfile } = useProfile()
+  const pathname = usePathname()
 
   const sidebarUser = {
     name: profile?.name || profile?.email || "",
     email: profile?.email || "",
-    avatar: profile?.avatarPath || "",
+    avatar: getMediaUrl(profile?.avatarPath),
   }
+
+  const navItems = React.useMemo(
+    () =>
+      data.navMain.map((item) => ({
+        ...item,
+        isActive: pathname === item.url,
+        showAlert: item.url === "/dashboard/profile" && hasIncompleteProfile,
+      })),
+    [pathname, hasIncompleteProfile],
+  )
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <NavUser user={sidebarUser} />
+        <NavUser user={sidebarUser} showAttentionIndicator={hasIncompleteProfile} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={navItems} />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
