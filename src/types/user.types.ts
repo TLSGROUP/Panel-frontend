@@ -11,6 +11,8 @@ export interface IUser {
 	country?: string
 	city?: string
 	phone?: string
+	referralCode?: string
+	referralLink?: string
 	verificationToken?: string
 	rights: UserRole[]
 	language: Language

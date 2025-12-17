@@ -1,6 +1,6 @@
 'use client'
 
-import { Camera, Pencil } from "lucide-react"
+import { Camera, Check, Copy, Pencil } from "lucide-react"
 import {
   ChangeEvent,
   useCallback,
@@ -104,6 +104,7 @@ export function ProfileInfo() {
   const [formValues, setFormValues] = useState<EditableValues>(initialValues)
   const [isAvatarUploading, setIsAvatarUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [hasCopiedReferral, setHasCopiedReferral] = useState(false)
 
   const hasChanges = useMemo(
     () =>
@@ -163,6 +164,7 @@ export function ProfileInfo() {
   }, [initialValues])
 
   const avatarPreview = getMediaUrl(formValues.avatarPath || user?.avatarPath || "")
+  const referralLink = user?.referralLink ?? ""
 
   const handleAvatarUpload = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -203,6 +205,22 @@ export function ProfileInfo() {
     },
     []
   )
+
+  const handleCopyReferralLink = useCallback(async () => {
+    if (!referralLink || typeof navigator === "undefined") {
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(referralLink)
+      setHasCopiedReferral(true)
+      setTimeout(() => setHasCopiedReferral(false), 1500)
+      toast.success("Referral link copied")
+    } catch (error: any) {
+      const message = error?.message || "Failed to copy referral link"
+      toast.error(message)
+    }
+  }, [referralLink])
 
   const shouldDetectCountry = !user?.country
 
@@ -421,6 +439,36 @@ export function ProfileInfo() {
                     </Badge>
                   ))}
                 </div>
+              </div>
+            </div>
+            <div className="w-full max-w-xl rounded-2xl border border-border/50 bg-muted/10 p-4">
+              <p className="text-sm font-medium text-muted-foreground">Referral link</p>
+              <div className="mt-3 flex flex-col gap-2 lg:flex-row lg:items-center">
+                <div className="flex-1 rounded-xl border border-border/40 bg-background/60 px-3 py-2 text-sm text-muted-foreground">
+                  <p className="line-clamp-1 break-all">
+                    {referralLink || "Link will appear once it is generated"}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full px-4"
+                  onClick={handleCopyReferralLink}
+                  disabled={!referralLink}
+                >
+                  {hasCopiedReferral ? (
+                    <>
+                      <Check className="size-4" aria-hidden />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-4" aria-hidden />
+                      Copy
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </div>
