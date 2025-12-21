@@ -251,7 +251,11 @@ export function PlanCards() {
   const { data: planData } = useQuery({
     queryKey: ["plans"],
     queryFn: () => paymentService.fetchPlans(),
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 5000,
   })
+
 
   const { data: stripeKey } = useQuery({
     queryKey: ["stripe-public-key"],
@@ -312,8 +316,9 @@ export function PlanCards() {
               <div className="flex items-baseline justify-between gap-2">
                 <CardTitle
                   className={`text-xl font-semibold ${
-                    planStyleMap[plan.id] ?? "text-foreground"
+                    plan.color ? "" : planStyleMap[plan.id] ?? "text-foreground"
                   }`}
+                  style={plan.color ? { color: plan.color } : undefined}
                 >
                   {plan.name}
                 </CardTitle>

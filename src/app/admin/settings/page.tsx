@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { LanguagePicker } from "@/components/language/LanguagePicker"
@@ -75,7 +75,16 @@ export default function AdminSettingsPage() {
   const [webhookSecret, setWebhookSecret] = useState("")
   const [planCatalog, setPlanCatalog] = useState(defaultPlanCatalog)
   const [isSaving, setIsSaving] = useState(false)
+  const [isSavingPlans, setIsSavingPlans] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [planSaveMessage, setPlanSaveMessage] = useState<string | null>(null)
+  const [lastSavedKeys, setLastSavedKeys] = useState({
+    publicKey: "",
+    secretKey: "",
+    webhookSecret: "",
+  })
+  const [lastSavedPlanCatalog, setLastSavedPlanCatalog] =
+    useState(defaultPlanCatalog)
 
   const { data: publicKeyData } = useQuery({
     queryKey: ["settings", SETTINGS_KEYS.publicKey],
@@ -98,36 +107,86 @@ export default function AdminSettingsPage() {
   })
 
   useEffect(() => {
-    if (publicKeyData?.value) setPublicKey(publicKeyData.value)
-    if (secretKeyData?.value) setSecretKey(secretKeyData.value)
-    if (webhookData?.value) setWebhookSecret(webhookData.value)
-    if (planCatalogData?.value) setPlanCatalog(planCatalogData.value)
+    if (publicKeyData?.value) {
+      setPublicKey(publicKeyData.value)
+      setLastSavedKeys((prev) => ({ ...prev, publicKey: publicKeyData.value }))
+    }
+    if (secretKeyData?.value) {
+      setSecretKey(secretKeyData.value)
+      setLastSavedKeys((prev) => ({ ...prev, secretKey: secretKeyData.value }))
+    }
+    if (webhookData?.value) {
+      setWebhookSecret(webhookData.value)
+      setLastSavedKeys((prev) => ({
+        ...prev,
+        webhookSecret: webhookData.value,
+      }))
+    }
+    if (planCatalogData?.value) {
+      setPlanCatalog(planCatalogData.value)
+      setLastSavedPlanCatalog(planCatalogData.value)
+    }
   }, [publicKeyData, secretKeyData, webhookData, planCatalogData])
 
-  const handleSave = async () => {
+  const keysDirty = useMemo(
+    () =>
+      publicKey.trim() !== lastSavedKeys.publicKey ||
+      secretKey.trim() !== lastSavedKeys.secretKey ||
+      webhookSecret.trim() !== lastSavedKeys.webhookSecret,
+    [publicKey, secretKey, webhookSecret, lastSavedKeys]
+  )
+
+  const planCatalogDirty = useMemo(
+    () => planCatalog.trim() !== lastSavedPlanCatalog.trim(),
+    [planCatalog, lastSavedPlanCatalog]
+  )
+
+  const handleSaveKeys = async () => {
     setIsSaving(true)
     setSaveMessage(null)
-
-    try {
-      JSON.parse(planCatalog)
-    } catch {
-      setSaveMessage("Plan catalog JSON is invalid.")
-      setIsSaving(false)
-      return
-    }
 
     try {
       await Promise.all([
         settingsService.saveSetting(SETTINGS_KEYS.publicKey, publicKey.trim()),
         settingsService.saveSetting(SETTINGS_KEYS.secretKey, secretKey.trim()),
         settingsService.saveSetting(SETTINGS_KEYS.webhookSecret, webhookSecret.trim()),
-        settingsService.saveSetting(SETTINGS_KEYS.planCatalog, planCatalog.trim()),
       ])
       setSaveMessage("Settings saved successfully.")
+      setLastSavedKeys({
+        publicKey: publicKey.trim(),
+        secretKey: secretKey.trim(),
+        webhookSecret: webhookSecret.trim(),
+      })
     } catch {
       setSaveMessage("Failed to save settings. Check the values and try again.")
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleSavePlanCatalog = async () => {
+    setIsSavingPlans(true)
+    setPlanSaveMessage(null)
+
+    try {
+      JSON.parse(planCatalog)
+    } catch {
+      setPlanSaveMessage("Plan catalog JSON is invalid.")
+      setIsSavingPlans(false)
+      return
+    }
+
+    try {
+      await settingsService.saveSetting(
+        SETTINGS_KEYS.planCatalog,
+        planCatalog.trim()
+      )
+      setPlanSaveMessage("Plan catalog saved successfully.")
+      setLastSavedPlanCatalog(planCatalog.trim())
+    } catch {
+      setPlanSaveMessage("Failed to save plan catalog. Check the values and try again.")
+    } finally {
+      setIsSavingPlans(false)
     }
   }
 
@@ -192,6 +251,19 @@ export default function AdminSettingsPage() {
               />
             </div>
           </CardContent>
+          <CardFooter className="flex items-center justify-between gap-3">
+            <span className="text-sm text-muted-foreground">
+              {saveMessage ?? "Save to apply updated Stripe credentials."}
+            </span>
+            {keysDirty && (
+              <span className="text-xs font-medium text-amber-400">
+                Unsaved changes
+              </span>
+            )}
+            <Button onClick={handleSaveKeys} disabled={isSaving || !keysDirty}>
+              {isSaving ? "Saving..." : "Save keys"}
+            </Button>
+          </CardFooter>
         </Card>
 
         <Card>
@@ -210,15 +282,19 @@ export default function AdminSettingsPage() {
             />
           </CardContent>
           <CardFooter className="flex items-center justify-between gap-3">
-            {saveMessage ? (
-              <span className="text-sm text-muted-foreground">{saveMessage}</span>
-            ) : (
-              <span className="text-sm text-muted-foreground">
-                Save to apply updates for new checkouts.
+            <span className="text-sm text-muted-foreground">
+              {planSaveMessage ?? "Save to apply updates for new checkouts."}
+            </span>
+            {planCatalogDirty && (
+              <span className="text-xs font-medium text-amber-400">
+                Unsaved changes
               </span>
             )}
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save settings"}
+            <Button
+              onClick={handleSavePlanCatalog}
+              disabled={isSavingPlans || !planCatalogDirty}
+            >
+              {isSavingPlans ? "Saving..." : "Save catalog"}
             </Button>
           </CardFooter>
         </Card>

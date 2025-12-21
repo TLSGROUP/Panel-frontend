@@ -7,6 +7,7 @@ export type PlanCatalogItem = {
   currency: string
   description?: string
   features?: string[]
+  color?: string
 }
 
 class PaymentService {

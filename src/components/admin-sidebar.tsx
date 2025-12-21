@@ -151,7 +151,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton size="sm">
-                    <Settings />
+                    <CreditCard />
                     <span>Payment settings</span>
                     <ChevronDown className="ml-auto transition-transform data-[state=open]:rotate-180" />
                   </SidebarMenuButton>
