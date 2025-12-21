@@ -1,10 +1,12 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { TrendingDown, TrendingUp } from "lucide-react"
+import { CreditCard, TrendingDown, TrendingUp } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { CardElement, Elements, useElements, useStripe } from "@stripe/react-stripe-js"
 import { loadStripe } from "@stripe/stripe-js"
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js"
+import { FaPaypal } from "react-icons/fa"
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -242,10 +244,15 @@ function PlanPaymentForm({
 export function PlanCards() {
   const [selectedPlan, setSelectedPlan] = useState<PlanCatalogItem | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paypal" | null>(
+    null
+  )
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [paymentId, setPaymentId] = useState<string | null>(null)
   const [intentLoading, setIntentLoading] = useState(false)
   const [intentError, setIntentError] = useState<string | null>(null)
+  const [paypalError, setPaypalError] = useState<string | null>(null)
+  const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
 
   const { data: planData } = useQuery({
@@ -262,6 +269,11 @@ export function PlanCards() {
     queryFn: () => paymentService.fetchPublicKey(),
   })
 
+  const { data: paypalKey } = useQuery({
+    queryKey: ["paypal-client-id"],
+    queryFn: () => paymentService.fetchPayPalClientId(),
+  })
+
   const plans = planData?.length ? planData : fallbackPlans
 
   const stripePromise = useMemo(() => {
@@ -272,14 +284,22 @@ export function PlanCards() {
   const openCheckout = async (plan: PlanCatalogItem) => {
     setSelectedPlan(plan)
     setDialogOpen(true)
+    setPaymentMethod(null)
     setPaymentSuccess(false)
     setClientSecret(null)
     setIntentError(null)
     setPaymentId(null)
+    setPaypalError(null)
+    setPaypalOrderId(null)
+  }
+
+  const startStripeCheckout = async () => {
+    if (!selectedPlan) return
+    setPaymentMethod("stripe")
 
     try {
       setIntentLoading(true)
-      const response = await paymentService.createPaymentIntent(plan.id)
+      const response = await paymentService.createPaymentIntent(selectedPlan.id)
       setClientSecret(response.clientSecret)
       setPaymentId(response.paymentId)
     } catch (error) {
@@ -289,16 +309,27 @@ export function PlanCards() {
     }
   }
 
+  const startPayPalCheckout = () => {
+    setPaymentMethod("paypal")
+    setPaypalError(null)
+  }
+
   const closeDialog = () => {
     if (paymentId && !paymentSuccess) {
       paymentService.cancelPayment(paymentId).catch(() => null)
+    }
+    if (paypalOrderId && !paymentSuccess) {
+      paymentService.cancelPayPalOrder(paypalOrderId).catch(() => null)
     }
     setDialogOpen(false)
     setSelectedPlan(null)
     setClientSecret(null)
     setPaymentId(null)
     setIntentError(null)
+    setPaypalError(null)
+    setPaypalOrderId(null)
     setPaymentSuccess(false)
+    setPaymentMethod(null)
   }
 
   return (
@@ -340,7 +371,7 @@ export function PlanCards() {
                 className="w-full bg-emerald-500 text-white hover:bg-emerald-600"
                 variant="default"
                 onClick={() => openCheckout(plan)}
-                disabled={!stripePromise}
+                disabled={!stripePromise && !paypalKey?.clientId}
               >
                 Buy
               </Button>
@@ -362,19 +393,46 @@ export function PlanCards() {
               Complete payment to activate your plan.
             </DialogDescription>
           </DialogHeader>
-          {intentLoading && (
+          {!paymentMethod && (
+            <div className="space-y-3">
+              <div className="text-sm text-muted-foreground">
+                Choose your payment method to continue.
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Button
+                  variant="outline"
+                  onClick={startStripeCheckout}
+                  disabled={!stripePromise}
+                  className="gap-2"
+                >
+                  <CreditCard className="size-4" />
+                  <span>Credit card</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={startPayPalCheckout}
+                  disabled={!paypalKey?.clientId}
+                  className="gap-2"
+                >
+                  <FaPaypal className="size-4" />
+                  <span>PayPal</span>
+                </Button>
+              </div>
+            </div>
+          )}
+          {paymentMethod === "stripe" && intentLoading && (
             <div className="text-sm text-muted-foreground">
               Preparing secure payment...
             </div>
           )}
-          {intentError && (
+          {paymentMethod === "stripe" && intentError && (
             <div className="text-sm text-destructive">{intentError}</div>
           )}
           {paymentSuccess ? (
             <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-200">
               Payment completed. Your plan is now active.
             </div>
-          ) : (
+          ) : paymentMethod === "stripe" ? (
             clientSecret &&
             stripePromise && (
               <Elements stripe={stripePromise}>
@@ -384,7 +442,63 @@ export function PlanCards() {
                 />
               </Elements>
             )
-          )}
+          ) : paymentMethod === "paypal" ? (
+            paypalKey?.clientId && selectedPlan ? (
+              <div className="space-y-3">
+                {paypalError && (
+                  <div className="text-sm text-destructive">{paypalError}</div>
+                )}
+                <PayPalScriptProvider
+                  options={{
+                    clientId: paypalKey.clientId,
+                    currency: selectedPlan.currency,
+                    intent: "capture",
+                  }}
+                >
+                  <PayPalButtons
+                    style={{ layout: "vertical", color: "gold" }}
+                    createOrder={async () => {
+                      try {
+                        const response = await paymentService.createPayPalOrder(
+                          selectedPlan.id
+                        )
+                        setPaypalOrderId(response.orderId)
+                        return response.orderId
+                      } catch {
+                        setPaypalError("Unable to start PayPal checkout.")
+                        throw new Error("PayPal order failed")
+                      }
+                    }}
+                    onApprove={async (data) => {
+                      try {
+                        if (!data.orderID) {
+                          throw new Error("Missing PayPal order")
+                        }
+                        await paymentService.capturePayPalOrder(data.orderID)
+                        setPaymentSuccess(true)
+                      } catch {
+                        setPaypalError("PayPal capture failed.")
+                      }
+                    }}
+                    onCancel={(data) => {
+                      if (data.orderID) {
+                        paymentService
+                          .cancelPayPalOrder(data.orderID)
+                          .catch(() => null)
+                      }
+                    }}
+                    onError={() => {
+                      setPaypalError("PayPal checkout failed.")
+                    }}
+                  />
+                </PayPalScriptProvider>
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">
+                PayPal is not configured.
+              </div>
+            )
+          ) : null}
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>
               Close

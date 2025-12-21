@@ -146,16 +146,23 @@ export default function AdminSettingsPage() {
     setSaveMessage(null)
 
     try {
-      await Promise.all([
+      const [savedPublic, savedSecret, savedWebhook] = await Promise.all([
         settingsService.saveSetting(SETTINGS_KEYS.publicKey, publicKey.trim()),
         settingsService.saveSetting(SETTINGS_KEYS.secretKey, secretKey.trim()),
         settingsService.saveSetting(SETTINGS_KEYS.webhookSecret, webhookSecret.trim()),
       ])
+      const maskedPublic = savedPublic?.value ?? publicKey.trim()
+      const maskedSecret = savedSecret?.value ?? secretKey.trim()
+      const maskedWebhook = savedWebhook?.value ?? webhookSecret.trim()
+
+      setPublicKey(maskedPublic)
+      setSecretKey(maskedSecret)
+      setWebhookSecret(maskedWebhook)
       setSaveMessage("Settings saved successfully.")
       setLastSavedKeys({
-        publicKey: publicKey.trim(),
-        secretKey: secretKey.trim(),
-        webhookSecret: webhookSecret.trim(),
+        publicKey: maskedPublic,
+        secretKey: maskedSecret,
+        webhookSecret: maskedWebhook,
       })
     } catch {
       setSaveMessage("Failed to save settings. Check the values and try again.")

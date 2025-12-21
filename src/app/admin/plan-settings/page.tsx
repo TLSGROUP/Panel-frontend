@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import toast from "react-hot-toast"
+import { ChevronDown } from "lucide-react"
 
 import { LanguagePicker } from "@/components/language/LanguagePicker"
 import {
@@ -27,12 +28,12 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import settingsService from "@/services/settings.service"
 import type { PlanCatalogItem } from "@/services/payment.service"
 
@@ -41,6 +42,8 @@ const SETTINGS_KEYS = {
   planCurrency: "plans.currency",
   planColors: "plans.colors",
 }
+
+type PlanDraft = PlanCatalogItem & { _uid: string }
 
 const DEFAULT_PLANS: PlanCatalogItem[] = [
   {
@@ -77,7 +80,7 @@ const DEFAULT_PLANS: PlanCatalogItem[] = [
   },
 ]
 
-const CURRENCY_OPTIONS = ["EUR", "USD", "GBP", "RUB", "AED"]
+const CURRENCY_OPTIONS = ["EUR", "USD",]
 const DEFAULT_PLAN_COLORS: Record<string, string> = {
   bronze: "#C0843A",
   silver: "#E2E8F0",
@@ -119,14 +122,30 @@ const formatAmount = (amount: number) => {
 const getColorValue = (color?: string) =>
   color && /^#[0-9A-Fa-f]{6}$/.test(color) ? color : COLOR_FALLBACK
 
+const createUid = () => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID()
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+const withUids = (plans: PlanCatalogItem[]): PlanDraft[] =>
+  plans.map((plan) => ({ ...plan, _uid: createUid() }))
+
+const serializePlans = (plans: PlanDraft[]) =>
+  JSON.stringify(
+    plans.map(({ _uid, ...rest }) => rest)
+  )
+
 export default function AdminPlanSettingsPage() {
   const queryClient = useQueryClient()
-  const [plans, setPlans] = useState<PlanCatalogItem[]>(DEFAULT_PLANS)
+  const [plans, setPlans] = useState<PlanDraft[]>(withUids(DEFAULT_PLANS))
   const [currency, setCurrency] = useState("EUR")
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
-  const [lastSavedPlans, setLastSavedPlans] =
-    useState<PlanCatalogItem[]>(DEFAULT_PLANS)
+  const [lastSavedPlans, setLastSavedPlans] = useState<PlanDraft[]>(
+    withUids(DEFAULT_PLANS)
+  )
   const [lastSavedCurrency, setLastSavedCurrency] = useState("EUR")
 
   const { data: planCatalogData } = useQuery({
@@ -173,11 +192,13 @@ export default function AdminPlanSettingsPage() {
       planCurrencyData?.value?.trim() || parsedPlans[0]?.currency || "EUR"
 
     setCurrency(initialCurrency)
-    const hydratedPlans = parsedPlans.map((plan) => ({
-      ...plan,
-      currency: initialCurrency,
-      color: colors[plan.id] || DEFAULT_PLAN_COLORS[plan.id] || COLOR_FALLBACK,
-    }))
+    const hydratedPlans = withUids(
+      parsedPlans.map((plan) => ({
+        ...plan,
+        currency: initialCurrency,
+        color: colors[plan.id] || DEFAULT_PLAN_COLORS[plan.id] || COLOR_FALLBACK,
+      }))
+    )
     setPlans(hydratedPlans)
     setLastSavedPlans(hydratedPlans)
     setLastSavedCurrency(initialCurrency)
@@ -191,11 +212,11 @@ export default function AdminPlanSettingsPage() {
   const isDirty = useMemo(() => {
     return (
       currency !== lastSavedCurrency ||
-      JSON.stringify(plans) !== JSON.stringify(lastSavedPlans)
+      serializePlans(plans) !== serializePlans(lastSavedPlans)
     )
   }, [plans, currency, lastSavedPlans, lastSavedCurrency])
 
-  const updatePlan = (index: number, updates: Partial<PlanCatalogItem>) => {
+  const updatePlan = (index: number, updates: Partial<PlanDraft>) => {
     setPlans((prev) =>
       prev.map((plan, idx) => (idx === index ? { ...plan, ...updates } : plan))
     )
@@ -221,6 +242,7 @@ export default function AdminPlanSettingsPage() {
           color: COLOR_FALLBACK,
           description: "",
           features: [],
+          _uid: createUid(),
         },
       ]
     })
@@ -302,7 +324,7 @@ export default function AdminPlanSettingsPage() {
     }
 
     const payload = plans.map((plan) => {
-      const { color, ...rest } = plan
+      const { color, _uid, ...rest } = plan
       return {
         ...rest,
         id: plan.id.trim(),
@@ -338,18 +360,21 @@ export default function AdminPlanSettingsPage() {
       const updatedPlans = payload.map((plan) => ({
         ...plan,
         color: colorsPayload[plan.id],
+        _uid: createUid(),
       }))
+      const updatedPlansPayload = updatedPlans.map(({ _uid, ...rest }) => rest)
 
       setSaveMessage("Plan catalog saved.")
       toast.success("Changes saved successfully")
-      setLastSavedPlans(plans)
+      setPlans(updatedPlans)
+      setLastSavedPlans(updatedPlans)
       setLastSavedCurrency(currency)
-      queryClient.setQueryData(["plans"], updatedPlans)
+      queryClient.setQueryData(["plans"], updatedPlansPayload)
       queryClient.invalidateQueries({ queryKey: ["plans"] })
       if (typeof window !== "undefined") {
         const payloadForSync = JSON.stringify({
           updatedAt: Date.now(),
-          plans: updatedPlans,
+          plans: updatedPlansPayload,
         })
         if ("BroadcastChannel" in window) {
           const channel = new BroadcastChannel("plans-updated")
@@ -405,18 +430,34 @@ export default function AdminPlanSettingsPage() {
                 Base currency affects all plan prices.
               </div>
             </div>
-            <Select value={currency} onValueChange={handleCurrencyChange}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Select currency" />
-              </SelectTrigger>
-              <SelectContent>
-                {CURRENCY_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-between md:w-15"
+                >
+                  <span>{currency}</span>
+                  <ChevronDown className="size-4 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="bottom"
+                align="center"
+                className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+              >
+                <DropdownMenuRadioGroup
+                  value={currency}
+                  onValueChange={handleCurrencyChange}
+                >
+                  {CURRENCY_OPTIONS.map((option) => (
+                    <DropdownMenuRadioItem key={option} value={option}>
+                      {option}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardContent>
         </Card>
 
@@ -432,7 +473,7 @@ export default function AdminPlanSettingsPage() {
 
         <div className="grid gap-4">
           {plans.map((plan, index) => (
-            <Card key={index}>
+            <Card key={plan._uid}>
               <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
                   <CardTitle className="text-base">

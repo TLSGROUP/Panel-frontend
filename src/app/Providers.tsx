@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { LazyMotion, domAnimation } from 'framer-motion'
 import { type PropsWithChildren, useEffect, useState } from 'react'
 import { Toaster } from 'react-hot-toast'
+import { API_URL } from '@/constants'
 
 export function Providers({ children }: PropsWithChildren) {
 	// Создаём клиент React Query единожды на всё приложение
@@ -62,7 +63,7 @@ function PlansSync() {
 
 		const connectSse = () => {
 			if (eventSource) eventSource.close()
-			eventSource = new EventSource('/payments/plans/stream')
+			eventSource = new EventSource(`${API_URL}/payments/plans/stream`)
 			eventSource.onmessage = () => {
 				queryClient.invalidateQueries({ queryKey: ['plans'] })
 			}
