@@ -23,13 +23,31 @@ html {
 
 body {
 	@apply px-8;
-	font-size: 20px;
+	font-size: 16px;
 	margin: 0 auto;
 }
 
-input,
-button {
-	font-size: 20px;
+body[data-scroll-locked] {
+	margin-right: 0 !important;
+	padding-right: 0 !important;
+	margin-left: 0 !important;
+	padding-left: 0 !important;
+}
+
+.width-before-scroll-bar {
+	margin-right: 0 !important;
+}
+
+.right-scroll-bar-position {
+	right: 0 !important;
+}
+
+.with-scroll-bars-hidden {
+	padding-right: 0 !important;
+}
+
+input {
+	font-size: 16px;
 }
 
 h1 {

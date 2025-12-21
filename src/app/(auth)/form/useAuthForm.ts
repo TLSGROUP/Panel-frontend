@@ -5,18 +5,19 @@ import authService from '@/services/auth/auth.service'
 import { IFormData } from '@/types/auth.types'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
-import { useRouter } from 'next/navigation'
-import { useRef, useTransition } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useRef, useTransition } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { useLanguage } from '@/context/LanguageContext'
 
 export function useAuthForm(isLogin: boolean) {
-	const { register, handleSubmit, reset } = useForm<IFormData>()
+	const { register, handleSubmit, reset, setValue } = useForm<IFormData>()
 
 	const router = useRouter()
 	const [isPending, startTransition] = useTransition()
+	const searchParams = useSearchParams()
 
 	const recaptchaRef = useRef<ReCAPTCHA>(null)
 	const { language, t } = useLanguage()
@@ -55,6 +56,14 @@ export function useAuthForm(isLogin: boolean) {
 		}
 	})
 
+	useEffect(() => {
+		if (isLogin) return
+		const refCode = searchParams.get('ref')
+		if (refCode) {
+			setValue('referralCode', refCode)
+		}
+	}, [isLogin, searchParams, setValue])
+
 	const onSubmit: SubmitHandler<IFormData> = data => {
 		const token = recaptchaRef.current?.getValue()
 
@@ -66,7 +75,12 @@ export function useAuthForm(isLogin: boolean) {
 		if (isLogin) {
 			mutateLogin(data)
 		} else {
-			mutateRegister({ ...data, language })
+			const referralCode = data.referralCode?.trim()
+			mutateRegister({
+				...data,
+				referralCode: referralCode || undefined,
+				language
+			})
 		}
 	}
 

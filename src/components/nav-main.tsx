@@ -1,6 +1,7 @@
 "use client"
 
 import type { LucideIcon } from "lucide-react"
+import Link from "next/link"
 
 import {
   SidebarGroup,
@@ -18,10 +19,16 @@ type NavItem = {
   showAlert?: boolean
 }
 
-export function NavMain({ items }: { items: NavItem[] }) {
+export function NavMain({
+  items,
+  label = "Panel",
+}: {
+  items: NavItem[]
+  label?: string
+}) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Panel</SidebarGroupLabel>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
@@ -30,7 +37,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
               isActive={item.isActive}
               tooltip={item.title}
             >
-              <a href={item.url}>
+              <Link href={item.url}>
                 {item.icon && <item.icon />}
                 <span className="flex items-center gap-2">
                   {item.title}
@@ -44,7 +51,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                     </>
                   )}
                 </span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

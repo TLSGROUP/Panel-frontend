@@ -29,7 +29,7 @@ export interface ITokenInside {
 export type TProtectUserData = Omit<ITokenInside, 'iat' | 'exp'>
 
 // Данные для форм логина/регистрации
-export interface IFormData extends Pick<IUser, 'email' | 'name'> {
+export interface IFormData extends Pick<IUser, 'email' | 'name' | 'referralCode'> {
 	password: string
 	language?: Language
 }

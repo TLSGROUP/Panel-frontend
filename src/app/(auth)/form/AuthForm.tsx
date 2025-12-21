@@ -93,12 +93,29 @@ export function AuthForm({ isLogin }: Props) {
 				</label>
 			</div>
 
+			{!isLogin && (
+				<div className="mb-4">
+					<label className="text-gray-600">
+						{t('referralCodeLabel')}
+						<input
+							type="text"
+							placeholder={t('referralCodePlaceholder')}
+							{...register('referralCode')}
+							className={styles['input-field']}
+						/>
+					</label>
+				</div>
+			)}
+
 			<ReCAPTCHA
 				ref={recaptchaRef}
 				size="normal"
 				sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY as string}
 				theme="light"
-				className={styles['recaptcha']}
+				className={twMerge(
+					styles['recaptcha'],
+					isLogin && styles['recaptchaLogin']
+				)}
 			/>
 
 			<div className="mb-3">

@@ -1,4 +1,4 @@
-import { ManagerContent } from '@/app/manager/ManagerContent'
+import { ManagerDashboard } from "@/app/manager/ManagerDashboard"
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -6,5 +6,5 @@ export const metadata: Metadata = {
 }
 
 export default function ManagerPage() {
-	return <ManagerContent />
+	return <ManagerDashboard />
 }

@@ -19,13 +19,13 @@ export function useProfile() {
 	})
 
 	// Если профиля ещё нет — пробуем обновить токены
-	useQuery({
+	const { data: refreshedData } = useQuery({
 		queryKey: ['new tokens'],
 		queryFn: () => authService.getNewTokens(),
 		enabled: !data?.data
 	})
 
-	const profile = data?.data
+	const profile = data?.data ?? refreshedData?.data?.user
 
 	const userState = profile ? transformUserToState(profile) : null
 
@@ -39,10 +39,7 @@ export function useProfile() {
 	return {
 		isLoading,
 		refetch: refetchProfile,
-		user: {
-			...profile,
-			...userState
-		},
+		user: profile && userState ? { ...profile, ...userState } : null,
 		hasIncompleteProfile
 	}
 }

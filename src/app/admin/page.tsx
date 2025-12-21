@@ -1,4 +1,4 @@
-import { Users } from '@/app/admin/Users'
+import { AdminDashboard } from "@/app/admin/AdminDashboard"
 
 import type { Metadata } from 'next'
 
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function AdminPage() {
-	return <Users />
+	return <AdminDashboard />
 }

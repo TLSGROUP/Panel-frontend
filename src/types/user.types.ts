@@ -13,7 +13,13 @@ export interface IUser {
 	phone?: string
 	referralCode?: string
 	referralLink?: string
+	referrerId?: string
 	verificationToken?: string
+	activePlanId?: string
+	activePlanName?: string
+	activePlanPrice?: number
+	activePlanCurrency?: string
+	activePlanPurchasedAt?: string
 	rights: UserRole[]
 	language: Language
 }

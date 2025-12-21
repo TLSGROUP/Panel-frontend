@@ -16,6 +16,38 @@ export interface IUserFormState extends Partial<Omit<IUser, 'id'>> {
 	password?: string
 }
 
+export interface IUserReferral {
+	id: string
+	name?: string | null
+	lastName?: string | null
+	email: string
+	phone?: string | null
+	country?: string | null
+	city?: string | null
+	createdAt: string
+}
+
+export interface IUserReferralsResponse {
+	success: boolean
+	data: IUserReferral[]
+	pagination: {
+		page: number
+		limit: number
+		total_pages: number
+		total_items: number
+	}
+}
+
+export interface IUserReferralsParams {
+	page?: number
+	limit?: number
+	search?: string
+	from_date?: string
+	to_date?: string
+	sort_by?: string
+	sort_order?: 'asc' | 'desc'
+}
+
 export type UpdateProfilePayload = Partial<{
 	name: string | null
 	lastName: string | null
@@ -86,6 +118,17 @@ class UserService {
 
 	async detectCountryByIp() {
 		return instance.get<IDetectedCountry>(`${this._BASE_URL}/detect-country`)
+	}
+
+	async fetchUserReferrals(params?: IUserReferralsParams) {
+		const response = await instance.get<IUserReferralsResponse>(
+			`${this._BASE_URL}/referrals`,
+			{
+				params
+			}
+		)
+
+		return response.data
 	}
 }
 

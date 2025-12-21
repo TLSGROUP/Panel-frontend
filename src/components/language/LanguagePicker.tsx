@@ -49,7 +49,7 @@ export function LanguagePicker({ inline = false, className }: LanguagePickerProp
           >
             <Languages className="h-4 w-4" />
             <span className="flex items-center gap-1">
-              <span>{flags[language]}</span>
+              <span className="text-lg">{flags[language]}</span>
               <span>{languageLabels[language]}</span>
             </span>
           </Button>
@@ -71,7 +71,7 @@ export function LanguagePicker({ inline = false, className }: LanguagePickerProp
                 className="text-xs"
               >
                 <span className="flex items-center gap-2">
-                  <span>{flags[lang as Language]}</span>
+                  <span className="text-lg">{flags[lang as Language]}</span>
                   <span>{languageLabels[lang as Language]}</span>
                 </span>
               </DropdownMenuRadioItem>

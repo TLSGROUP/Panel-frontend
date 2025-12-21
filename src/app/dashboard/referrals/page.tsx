@@ -1,8 +1,12 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { DataTable } from "@/components/data-table/data-table"
+import { DataTableColumnHeader } from "@/components/data-table/column-header"
+import type { ExportableData } from "@/components/data-table/utils/export-utils"
 import { LanguagePicker } from "@/components/language/LanguagePicker"
 import { SectionCards } from "@/components/ui/section-cards"
 import {
@@ -27,22 +31,209 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
+import userService, { type IUserReferral, type IUserReferralsParams } from "@/services/user.service"
 
-const referralLeaders = [
-  { name: "Evelyn Diaz", joined: "Jan 04, 2024", earnings: "$4,900" },
-  { name: "Hiro Sato", joined: "Feb 11, 2024", earnings: "$3,650" },
-  { name: "Lina Ortega", joined: "Mar 28, 2024", earnings: "$2,780" },
-  { name: "Marcus Lee", joined: "May 09, 2024", earnings: "$2,310" },
-]
+interface ReferralTableRow extends ExportableData, IUserReferral {}
+
+interface ReferralFetchParams {
+  page: number
+  limit: number
+  search: string
+  from_date: string
+  to_date: string
+  sort_by: string
+  sort_order: "asc" | "desc"
+}
+
+type ReferralFetchArgs =
+  | [ReferralFetchParams]
+  | [
+      number,
+      number,
+      string,
+      { from_date: string; to_date: string },
+      string,
+      string,
+      unknown?,
+    ]
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "2-digit",
+  year: "numeric",
+})
 
 export default function ReferralsPage() {
   const [ready, setReady] = useState(false)
-  const skeletonCards = Array.from({ length: 4 })
+  const skeletonCards = useMemo(() => Array.from({ length: 4 }), [])
 
   useEffect(() => {
     const timer = setTimeout(() => setReady(true), 600)
     return () => clearTimeout(timer)
   }, [])
+
+  const referralColumns = useMemo<ColumnDef<ReferralTableRow, unknown>[]>(() => [
+    {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => (
+        <span className="font-semibold tracking-tight">{row.original.id}</span>
+      ),
+      enableSorting: true,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => (
+        <span className="font-medium">
+          {row.original.name?.trim() || "—"}
+        </span>
+      ),
+      enableSorting: true,
+    },
+    {
+      accessorKey: "lastName",
+      header: "Last name",
+      cell: ({ row }) => (
+        <span>{row.original.lastName?.trim() || "—"}</span>
+      ),
+      enableSorting: true,
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.email}</span>
+      ),
+      enableSorting: true,
+    },
+    {
+      accessorKey: "phone",
+      header: "Phone",
+      cell: ({ row }) => (
+        <span>{row.original.phone?.trim() || "—"}</span>
+      ),
+      enableSorting: true,
+    },
+    {
+      accessorKey: "country",
+      header: "Country",
+      cell: ({ row }) => (
+        <span>{row.original.country?.trim() || "—"}</span>
+      ),
+      enableSorting: true,
+    },
+    {
+      accessorKey: "city",
+      header: "City",
+      cell: ({ row }) => (
+        <span>{row.original.city?.trim() || "—"}</span>
+      ),
+      enableSorting: true,
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Joined",
+      cell: ({ row }) => {
+        const rawDate = row.original.createdAt
+        const parsed = rawDate ? new Date(rawDate) : null
+        const isValid = parsed && !Number.isNaN(parsed.getTime())
+
+        return (
+          <span className="text-sm text-muted-foreground">
+            {isValid ? dateFormatter.format(parsed) : "—"}
+          </span>
+        )
+      },
+      enableSorting: true,
+    },
+  ], [])
+
+  const fetchReferralData = useCallback(async (...args: ReferralFetchArgs) => {
+    const params: IUserReferralsParams =
+      typeof args[0] === "number"
+        ? {
+            page: args[0],
+            limit: args[1] ?? 10,
+            search: args[2] ?? "",
+            from_date: args[3]?.from_date ?? "",
+            to_date: args[3]?.to_date ?? "",
+            sort_by: args[4] ?? "createdAt",
+            sort_order: args[5] === "asc" ? "asc" : "desc",
+          }
+        : args[0]
+
+    const response = await userService.fetchUserReferrals(params)
+
+    return {
+      success: response.success,
+      data: response.data,
+      pagination: response.pagination,
+    }
+  }, [])
+
+  const referralExportConfig = useMemo(
+    () => ({
+      entityName: "referrals",
+      columnMapping: {
+        id: "ID",
+        name: "Name",
+        lastName: "Last name",
+        email: "Email",
+        phone: "Phone",
+        country: "Country",
+        city: "City",
+        createdAt: "Joined",
+      },
+      columnWidths: [
+        { wch: 12 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 28 },
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 18 },
+      ],
+      headers: ["id", "name", "lastName", "email", "phone", "country", "city", "createdAt"],
+      transformFunction: (row: ReferralTableRow) => {
+        const parsed = row.createdAt ? new Date(row.createdAt) : null
+        const formattedDate =
+          parsed && !Number.isNaN(parsed.getTime())
+            ? dateFormatter.format(parsed)
+            : ""
+
+        return {
+          ...row,
+          name: row.name?.trim() || "",
+          lastName: row.lastName?.trim() || "",
+          phone: row.phone?.trim() || "",
+          country: row.country?.trim() || "",
+          city: row.city?.trim() || "",
+          createdAt: formattedDate,
+        }
+      },
+    }),
+    []
+  )
+
+  const referralTableConfig = useMemo(
+    () => ({
+      columnResizingTableId: "referral-leaderboard",
+      defaultSortBy: "createdAt",
+      defaultSortOrder: "desc" as const,
+      enableColumnFilters: false,
+      enableColumnVisibility: false,
+      enableExport: false,
+    }),
+    []
+  )
+
+  const getReferralColumns = useCallback(
+    () => referralColumns,
+    [referralColumns]
+  )
 
   return (
     <SidebarProvider>
@@ -96,43 +287,17 @@ export default function ReferralsPage() {
           )}
           <Card>
             <CardHeader>
-              <CardTitle>Referral leaderboard</CardTitle>
-              <CardDescription>
-                Track who drives the most conversions this quarter.
-              </CardDescription>
+              <CardTitle>Referrals</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {ready
-                ? referralLeaders.map((entry) => (
-                    <div
-                      key={entry.name}
-                      className="flex flex-col gap-2 rounded-lg border border-border/60 p-4 @xl:flex-row @xl:items-center @xl:justify-between"
-                    >
-                      <div>
-                        <p className="text-base font-semibold">{entry.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Joined {entry.joined}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">
-                          Total earnings
-                        </p>
-                        <p className="text-2xl font-semibold tabular-nums">
-                          {entry.earnings}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                : Array.from({ length: 4 }).map((_, idx) => (
-                    <div
-                      key={`row-skeleton-${idx}`}
-                      className="flex flex-col gap-2 rounded-lg border border-dashed border-border/80 p-4"
-                    >
-                      <Skeleton className="h-4 w-40 rounded-full" />
-                      <Skeleton className="h-4 w-24 rounded-full" />
-                    </div>
-                  ))}
+              <DataTable
+                config={referralTableConfig}
+                getColumns={getReferralColumns}
+                fetchDataFn={fetchReferralData}
+                exportConfig={referralExportConfig}
+                idField="id"
+                pageSizeOptions={[10, 20, 30, 40, 50]}
+              />
             </CardContent>
           </Card>
         </div>

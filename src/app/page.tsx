@@ -29,6 +29,14 @@ export default async function Home() {
 	}
 
 	if (user?.isLoggedIn) {
+		if (user.isAdmin) {
+			redirect('/admin')
+		}
+
+		if (user.isManager) {
+			redirect('/manager')
+		}
+
 		return <DashboardPage />
 	}
 
