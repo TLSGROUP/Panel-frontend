@@ -60,6 +60,13 @@ class PaymentService {
     })
     return response.data
   }
+
+  async confirmStripePayment(paymentId: string) {
+    const response = await instance.post<{ status: string }>("/payments/stripe/confirm", {
+      paymentId
+    })
+    return response.data
+  }
 }
 
 export default new PaymentService()

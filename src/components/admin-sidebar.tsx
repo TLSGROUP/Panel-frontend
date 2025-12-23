@@ -3,7 +3,17 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BadgeCheck, Bell, Bot, ChevronDown, CreditCard, Settings, SquareTerminal, Wallet } from "lucide-react"
+import {
+  BadgeCheck,
+  Bell,
+  Bot,
+  ChevronDown,
+  CreditCard,
+  Network,
+  Settings,
+  SquareTerminal,
+  Wallet,
+} from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -71,6 +81,11 @@ const planSettingsNav = [
     title: "Plan settings",
     url: "/admin/plan-settings",
     icon: Settings,
+  },
+  {
+    title: "MLM engine",
+    url: "/admin/mlm-engine",
+    icon: Network,
   },
 ]
 

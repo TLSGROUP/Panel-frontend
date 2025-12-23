@@ -34,40 +34,7 @@ const SETTINGS_KEYS = {
   planCatalog: "plans.catalog",
 }
 
-const defaultPlanCatalog = `[
-  {
-    "id": "bronze",
-    "name": "Bronze",
-    "amount": 1900,
-    "currency": "EUR",
-    "description": "Ideal for freelancers and mini teams.",
-    "features": ["1 project", "Basic analytics", "Email support"]
-  },
-  {
-    "id": "silver",
-    "name": "Silver",
-    "amount": 4900,
-    "currency": "EUR",
-    "description": "For teams that grow steadily.",
-    "features": ["5 projects", "Advanced analytics", "Priority support"]
-  },
-  {
-    "id": "gold",
-    "name": "Gold",
-    "amount": 9900,
-    "currency": "EUR",
-    "description": "Optimized for agencies and startups.",
-    "features": ["Unlimited projects", "Automation tools", "Account manager"]
-  },
-  {
-    "id": "brilliant",
-    "name": "Brilliant",
-    "amount": 19900,
-    "currency": "EUR",
-    "description": "Complete toolkit for enterprises.",
-    "features": ["All Pro features", "99.9% SLA", "Custom onboarding"]
-  }
-]`
+const defaultPlanCatalog = `[]`
 
 export default function AdminSettingsPage() {
   const [publicKey, setPublicKey] = useState("")

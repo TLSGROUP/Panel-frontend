@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { CreditCard, TrendingDown, TrendingUp } from "lucide-react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { CardElement, Elements, useElements, useStripe } from "@stripe/react-stripe-js"
 import { loadStripe } from "@stripe/stripe-js"
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js"
@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import paymentService, { type PlanCatalogItem } from "@/services/payment.service"
+import { useProfile } from "@/hooks/useProfile"
 
 export function SectionCards() {
   return (
@@ -127,40 +128,6 @@ const planStyleMap: Record<string, string> = {
   brilliant: "text-sky-200",
 }
 
-const fallbackPlans: PlanCatalogItem[] = [
-  {
-    id: "bronze",
-    name: "Bronze",
-    amount: 1900,
-    currency: "EUR",
-    description: "Ideal for freelancers and mini teams.",
-    features: ["1 project", "Basic analytics", "Email support"],
-  },
-  {
-    id: "silver",
-    name: "Silver",
-    amount: 4900,
-    currency: "EUR",
-    description: "For teams that grow steadily.",
-    features: ["5 projects", "Advanced analytics", "Priority support"],
-  },
-  {
-    id: "gold",
-    name: "Gold",
-    amount: 9900,
-    currency: "EUR",
-    description: "Optimized for agencies and startups.",
-    features: ["Unlimited projects", "Automation tools", "Account manager"],
-  },
-  {
-    id: "brilliant",
-    name: "Brilliant",
-    amount: 19900,
-    currency: "EUR",
-    description: "Complete toolkit for enterprises.",
-    features: ["All Pro features", "99.9% SLA", "Custom onboarding"],
-  },
-]
 
 function formatPlanPrice(amount: number, currency: string) {
   return new Intl.NumberFormat("en-US", {
@@ -169,12 +136,25 @@ function formatPlanPrice(amount: number, currency: string) {
   }).format(amount / 100)
 }
 
+function PlansEmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-white/10 bg-black/40 px-6 py-8 text-center text-sm text-muted-foreground">
+      <div className="text-base font-semibold text-foreground">
+        Plans are not configured
+      </div>
+      <div>Ask an administrator to add plans in Admin → Plan settings.</div>
+    </div>
+  )
+}
+
 function PlanPaymentForm({
   clientSecret,
+  paymentId,
   onSuccess,
 }: {
   clientSecret: string
-  onSuccess: () => void
+  paymentId: string
+  onSuccess: () => Promise<void>
 }) {
   const stripe = useStripe()
   const elements = useElements()
@@ -205,7 +185,11 @@ function PlanPaymentForm({
     }
 
     if (result.paymentIntent?.status === "succeeded") {
-      onSuccess()
+      try {
+        await onSuccess()
+      } catch {
+        setErrorMessage("Payment confirmed but activation failed.")
+      }
     } else {
       setErrorMessage("Payment requires additional action.")
     }
@@ -242,6 +226,8 @@ function PlanPaymentForm({
 }
 
 export function PlanCards() {
+  const queryClient = useQueryClient()
+  const { user } = useProfile()
   const [selectedPlan, setSelectedPlan] = useState<PlanCatalogItem | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paypal" | null>(
@@ -254,6 +240,21 @@ export function PlanCards() {
   const [paypalError, setPaypalError] = useState<string | null>(null)
   const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
+
+  useEffect(() => {
+    if (!paymentSuccess) return
+    const retry1 = window.setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ["profile"] })
+    }, 2000)
+    const retry2 = window.setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ["profile"] })
+    }, 6000)
+
+    return () => {
+      window.clearTimeout(retry1)
+      window.clearTimeout(retry2)
+    }
+  }, [paymentSuccess, queryClient])
 
   const { data: planData } = useQuery({
     queryKey: ["plans"],
@@ -274,7 +275,33 @@ export function PlanCards() {
     queryFn: () => paymentService.fetchPayPalClientId(),
   })
 
-  const plans = planData?.length ? planData : fallbackPlans
+  const plans = planData ?? []
+
+  const planRank = useMemo(() => {
+    const ordered = [...plans].sort((a, b) => a.amount - b.amount)
+    return new Map(ordered.map((plan, index) => [plan.id, index]))
+  }, [plans])
+
+  const activePlan = useMemo(() => {
+    if (!user) return null
+    if (user.activePlanId) {
+      return plans.find((plan) => plan.id === user.activePlanId) ?? null
+    }
+    if (user.activePlanName) {
+      return (
+        plans.find((plan) => plan.name === user.activePlanName) ?? null
+      )
+    }
+    if (typeof user.activePlanPrice === "number") {
+      return (
+        plans.find((plan) => plan.amount === user.activePlanPrice) ?? null
+      )
+    }
+    return null
+  }, [plans, user])
+
+  const activePlanRank =
+    activePlan && planRank.has(activePlan.id) ? planRank.get(activePlan.id)! : null
 
   const stripePromise = useMemo(() => {
     if (!stripeKey?.publicKey) return null
@@ -337,12 +364,32 @@ export function PlanCards() {
       <h2 className="text-center text-xl font-semibold uppercase tracking-wide text-muted-foreground">
         Plans
       </h2>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {plans.map((plan) => (
-          <Card
-            key={plan.id}
-            className="flex flex-col border border-primary/10 bg-card/80 backdrop-blur @container/plan"
-          >
+      {plans.length === 0 ? (
+        <PlansEmptyState />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {plans.map((plan) => {
+          const rank = planRank.get(plan.id)
+          const isCurrent = activePlanRank !== null && rank === activePlanRank
+          const isDowngrade =
+            activePlanRank !== null && rank !== undefined && rank < activePlanRank
+          const isUpgrade =
+            activePlanRank !== null && rank !== undefined && rank > activePlanRank
+          const canPay = Boolean(stripePromise || paypalKey?.clientId)
+          const isDisabled = !canPay || isCurrent || isDowngrade
+          const buttonLabel = isCurrent
+            ? "Current plan"
+            : isUpgrade
+              ? "Upgrade"
+              : activePlanRank !== null
+                ? "Not available"
+                : "Buy"
+
+          return (
+            <Card
+              key={plan.id}
+              className="flex flex-col border border-primary/10 bg-card/80 backdrop-blur @container/plan"
+            >
             <CardHeader>
               <div className="flex items-baseline justify-between gap-2">
                 <CardTitle
@@ -371,14 +418,16 @@ export function PlanCards() {
                 className="w-full bg-emerald-500 text-white hover:bg-emerald-600"
                 variant="default"
                 onClick={() => openCheckout(plan)}
-                disabled={!stripePromise && !paypalKey?.clientId}
+                disabled={isDisabled}
               >
-                Buy
+                {buttonLabel}
               </Button>
             </CardFooter>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          )
+          })}
+        </div>
+      )}
       <Dialog
         open={dialogOpen}
         onOpenChange={(open) => !open && closeDialog()}
@@ -438,7 +487,14 @@ export function PlanCards() {
               <Elements stripe={stripePromise}>
                 <PlanPaymentForm
                   clientSecret={clientSecret}
-                  onSuccess={() => setPaymentSuccess(true)}
+                  paymentId={paymentId ?? ""}
+                  onSuccess={async () => {
+                    if (paymentId) {
+                      await paymentService.confirmStripePayment(paymentId)
+                    }
+                    setPaymentSuccess(true)
+                    queryClient.invalidateQueries({ queryKey: ["profile"] })
+                  }}
                 />
               </Elements>
             )
@@ -471,17 +527,18 @@ export function PlanCards() {
                     }}
                     onApprove={async (data) => {
                       try {
-                        if (!data.orderID) {
+                        if (typeof data.orderID !== "string") {
                           throw new Error("Missing PayPal order")
                         }
                         await paymentService.capturePayPalOrder(data.orderID)
                         setPaymentSuccess(true)
+                        queryClient.invalidateQueries({ queryKey: ["profile"] })
                       } catch {
                         setPaypalError("PayPal capture failed.")
                       }
                     }}
                     onCancel={(data) => {
-                      if (data.orderID) {
+                      if (typeof data.orderID === "string") {
                         paymentService
                           .cancelPayPalOrder(data.orderID)
                           .catch(() => null)
