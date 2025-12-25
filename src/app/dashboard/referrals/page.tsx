@@ -253,7 +253,7 @@ export default function ReferralsPage() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Referrals</BreadcrumbPage>
+                  <BreadcrumbPage>Partners</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -287,7 +287,7 @@ export default function ReferralsPage() {
           )}
           <Card>
             <CardHeader>
-              <CardTitle>Referrals</CardTitle>
+              <CardTitle>Partners</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <DataTable

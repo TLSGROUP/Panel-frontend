@@ -9,6 +9,7 @@ import {
   Bot,
   ChevronDown,
   CreditCard,
+  Map,
   Network,
   Settings,
   SquareTerminal,
@@ -39,9 +40,14 @@ const adminNav = [
     icon: SquareTerminal,
   },
   {
-    title: "Referrals",
+    title: "Partners",
     url: "/admin/referrals",
     icon: Bot,
+  },
+  {
+    title: "Partners map",
+    url: "/admin/partners-map",
+    icon: Map,
   },
   {
     title: "Wallet",
@@ -103,7 +109,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const isSettingsRoute =
     pathname.startsWith("/admin/settings") ||
     pathname.startsWith("/admin/paypal-settings")
-  const [settingsOpen, setSettingsOpen] = React.useState(isSettingsRoute)
+  const [settingsOpen, setSettingsOpen] = React.useState(false)
 
   React.useEffect(() => {
     setSettingsOpen(isSettingsRoute)

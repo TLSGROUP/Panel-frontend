@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { BadgeCheck, Bell, Bot, CreditCard, SquareTerminal, Wallet } from "lucide-react"
+import { BadgeCheck, Bell, Bot, CreditCard, Map, SquareTerminal, Wallet } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -22,9 +22,14 @@ const managerNav = [
     icon: SquareTerminal,
   },
   {
-    title: "Referrals",
+    title: "Partners",
     url: "/manager/referrals",
     icon: Bot,
+  },
+  {
+    title: "Partners map",
+    url: "/manager/partners-map",
+    icon: Map,
   },
   {
     title: "Wallet",

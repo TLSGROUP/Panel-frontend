@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { BadgeCheck, Bell, Bot, CreditCard, SquareTerminal, Wallet } from "lucide-react"
+import { BadgeCheck, Bell, Bot, CreditCard, Map, SquareTerminal, Wallet } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -23,10 +23,15 @@ const data = {
       url: "/dashboard",
       icon: SquareTerminal,
     },
+      {
+        title: "Partners",
+        url: "/dashboard/referrals",
+        icon: Bot,
+      },
     {
-      title: "Referrals",
-      url: "/dashboard/referrals",
-      icon: Bot,
+      title: "Partners map",
+      url: "/dashboard/partners-map",
+      icon: Map,
     },
     {
       title: "Wallet",
