@@ -41,7 +41,7 @@ const adminNav = [
   },
   {
     title: "Partners",
-    url: "/admin/referrals",
+    url: "/admin/partners",
     icon: Bot,
   },
   {

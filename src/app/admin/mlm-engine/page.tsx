@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import toast from "react-hot-toast"
-import { HelpCircle } from "lucide-react"
+import { ChevronDown, HelpCircle } from "lucide-react"
 
 import { LanguagePicker } from "@/components/language/LanguagePicker"
 import {
@@ -31,6 +31,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -49,6 +56,59 @@ import paymentService, { type PlanCatalogItem } from "@/services/payment.service
 
 type ModuleState = {
   settings: Record<string, MlmSettingValue>
+}
+
+type BinarySelectOption = {
+  value: string
+  label: string
+}
+
+type BinarySelectProps = {
+  value?: string
+  placeholder?: string
+  options: BinarySelectOption[]
+  onValueChange: (value: string) => void
+}
+
+function BinarySelect({
+  value,
+  placeholder = "Select option",
+  options,
+  onValueChange,
+}: BinarySelectProps) {
+  const selected = options.find((option) => option.value === value)
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 w-full justify-between"
+        >
+          <span>{selected?.label ?? placeholder}</span>
+          <ChevronDown className="size-4 opacity-70" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="bottom"
+        sideOffset={4}
+        align="start"
+        avoidCollisions={true}
+        className="min-w-[var(--radix-dropdown-menu-trigger-width)] border border-white/10 bg-black/40 text-white backdrop-blur-md"
+      >
+        <DropdownMenuRadioGroup
+          value={value ?? ""}
+          onValueChange={onValueChange}
+        >
+          {options.map((option) => (
+            <DropdownMenuRadioItem key={option.value} value={option.value}>
+              {option.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
 }
 
 function coerceValue(value: string, type: "text" | "number") {
@@ -123,6 +183,8 @@ export default function AdminMlmEnginePage() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [placementHelpOpen, setPlacementHelpOpen] = useState(false)
   const [placementHelpTopic, setPlacementHelpTopic] = useState<string>("")
+  const selectContentClassName =
+    "border border-white/10 bg-black/40 text-white backdrop-blur-md"
 
   const { data } = useQuery({
     queryKey: ["mlm-engine"],
@@ -367,26 +429,13 @@ export default function AdminMlmEnginePage() {
                                     </button>
                                   ) : null}
                                 </label>
-                                <Select
+                                <BinarySelect
                                   value={selectValue ?? ""}
+                                  options={field.options ?? []}
                                   onValueChange={(nextValue) =>
                                     updateSetting(module.key, field.key, nextValue)
                                   }
-                                >
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select option" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {field.options?.map((option) => (
-                                      <SelectItem
-                                        key={option.value}
-                                        value={option.value}
-                                      >
-                                        {option.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                />
                               </div>
                             )
                           })}
@@ -508,8 +557,12 @@ export default function AdminMlmEnginePage() {
                                   <label className="text-sm font-medium">
                                     {labelText}
                                   </label>
-                                  <Select
+                                  <BinarySelect
                                     value={selectValue}
+                                    options={[
+                                      { value: "yes", label: "YES" },
+                                      { value: "no", label: "NO" },
+                                    ]}
                                     onValueChange={(nextValue) =>
                                       updateSetting(
                                         module.key,
@@ -517,15 +570,7 @@ export default function AdminMlmEnginePage() {
                                         nextValue === "yes"
                                       )
                                     }
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="yes">YES</SelectItem>
-                                      <SelectItem value="no">NO</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                  />
                                 </div>
                               )
                             }
@@ -589,7 +634,12 @@ export default function AdminMlmEnginePage() {
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select option" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent
+                                className={selectContentClassName}
+                                position="popper"
+                                align="start"
+                                sideOffset={4}
+                              >
                                 {field.options?.map((option) => (
                                   <SelectItem
                                     key={option.value}

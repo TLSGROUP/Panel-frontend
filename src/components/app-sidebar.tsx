@@ -25,7 +25,7 @@ const data = {
     },
       {
         title: "Partners",
-        url: "/dashboard/referrals",
+        url: "/dashboard/partners",
         icon: Bot,
       },
     {

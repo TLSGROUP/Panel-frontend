@@ -63,7 +63,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 })
 
-export default function ReferralsPage() {
+export default function PartnersPage() {
   const [ready, setReady] = useState(false)
   const skeletonCards = useMemo(() => Array.from({ length: 4 }), [])
 

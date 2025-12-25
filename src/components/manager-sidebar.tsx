@@ -23,7 +23,7 @@ const managerNav = [
   },
   {
     title: "Partners",
-    url: "/manager/referrals",
+    url: "/manager/partners",
     icon: Bot,
   },
   {
