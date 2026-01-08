@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { BadgeCheck, Bell, Bot, CreditCard, Map, SquareTerminal, Wallet } from "lucide-react"
+import { BadgeCheck, Bell, Bot, CreditCard, Map, Settings, SquareTerminal, Wallet } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -53,6 +53,14 @@ const managerNav = [
   },
 ]
 
+const managementSettingsNav = [
+  {
+    title: "Withdraw requests",
+    url: "/manager/management",
+    icon: Settings,
+  },
+]
+
 export function ManagerSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: profile, hasIncompleteProfile } = useProfile()
   const pathname = usePathname()
@@ -72,6 +80,14 @@ export function ManagerSidebar({ ...props }: React.ComponentProps<typeof Sidebar
       })),
     [pathname, hasIncompleteProfile],
   )
+  const managementSettingsItems = React.useMemo(
+    () =>
+      managementSettingsNav.map((item) => ({
+        ...item,
+        isActive: pathname === item.url,
+      })),
+    [pathname],
+  )
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -80,6 +96,10 @@ export function ManagerSidebar({ ...props }: React.ComponentProps<typeof Sidebar
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />
+        <NavMain
+          items={managementSettingsItems}
+          label="Management Settings"
+        />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

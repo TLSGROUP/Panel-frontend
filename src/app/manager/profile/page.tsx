@@ -1,6 +1,6 @@
 'use client'
 
-import { AppSidebar } from "@/components/app-sidebar"
+import { ManagerSidebar } from "@/components/manager-sidebar"
 import { LanguagePicker } from "@/components/language/LanguagePicker"
 import {
   Breadcrumb,
@@ -22,7 +22,7 @@ import { ProfileInfo } from "./ProfileInfo"
 export default function ProfilePage() {
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <ManagerSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 px-4">
           <div className="flex items-center gap-2">

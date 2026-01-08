@@ -55,6 +55,9 @@ export type UpdateProfilePayload = Partial<{
 	country: string | null
 	city: string | null
 	avatarPath: string | null
+	payoutCreditCard: string | null
+	payoutPaypal: string | null
+	payoutUsdt: string | null
 }>
 
 export interface IDetectedCountry {
@@ -123,6 +126,17 @@ class UserService {
 	async fetchUserReferrals(params?: IUserReferralsParams) {
 		const response = await instance.get<IUserReferralsResponse>(
 			`${this._BASE_URL}/referrals`,
+			{
+				params
+			}
+		)
+
+		return response.data
+	}
+
+	async fetchBinaryPartners(params?: IUserReferralsParams) {
+		const response = await instance.get<IUserReferralsResponse>(
+			`${this._BASE_URL}/binary-partners`,
 			{
 				params
 			}

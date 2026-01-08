@@ -62,10 +62,6 @@ export default function BillingPage() {
                   Unlimited projects with automation and dedicated manager.
                 </CardDescription>
               </div>
-              <div className="text-right">
-                <p className="text-3xl font-semibold">$89</p>
-                <p className="text-sm text-muted-foreground">per month</p>
-              </div>
             </CardHeader>
             <CardContent className="grid gap-4 @md:grid-cols-2">
               <div className="rounded-lg border border-white/10 p-4">

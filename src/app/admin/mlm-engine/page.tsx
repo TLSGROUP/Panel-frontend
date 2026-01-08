@@ -697,6 +697,7 @@ export default function AdminMlmEnginePage() {
                   <Dialog
                     open={placementHelpOpen}
                     onOpenChange={setPlacementHelpOpen}
+                    modal={false}
                   >
                     <DialogContent className="border border-white/10 bg-black/60 text-white backdrop-blur-md">
                       <DialogHeader>

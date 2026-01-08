@@ -1,6 +1,6 @@
 'use client'
 
-import { AppSidebar } from "@/components/app-sidebar"
+import { ManagerSidebar } from "@/components/manager-sidebar"
 import { LanguagePicker } from "@/components/language/LanguagePicker"
 import {
   Breadcrumb,
@@ -35,7 +35,7 @@ const invoices = [
 export default function BillingPage() {
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <ManagerSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 px-4">
           <div className="flex items-center gap-2">
@@ -68,10 +68,6 @@ export default function BillingPage() {
                 <CardDescription>
                   Unlimited projects with automation and dedicated manager.
                 </CardDescription>
-              </div>
-              <div className="text-right">
-                <p className="text-3xl font-semibold">$89</p>
-                <p className="text-sm text-muted-foreground">per month</p>
               </div>
             </CardHeader>
             <CardContent className="grid gap-4 @md:grid-cols-2">

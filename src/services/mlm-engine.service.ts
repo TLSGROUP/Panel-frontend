@@ -42,6 +42,11 @@ class MlmEngineService {
     })
     return response.data
   }
+
+  async fetchEnabledModuleKeys() {
+    const response = await instance.get<string[]>("/mlm-engine/enabled")
+    return response.data
+  }
 }
 
 export default new MlmEngineService()

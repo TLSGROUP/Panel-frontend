@@ -25,15 +25,22 @@ export type WalletTransaction = {
   } | null
 }
 
+export type WalletTransactionsPage = {
+  items: WalletTransaction[]
+  total: number
+  page: number
+  limit: number
+}
+
 class WalletService {
   async fetchWallet() {
     const response = await instance.get<WalletSummary>("/wallet")
     return response.data
   }
 
-  async fetchTransactions(limit = 20) {
-    const response = await instance.get<WalletTransaction[]>(
-      `/wallet/transactions?limit=${limit}`
+  async fetchTransactions(limit = 20, page = 1) {
+    const response = await instance.get<WalletTransactionsPage>(
+      `/wallet/transactions?limit=${limit}&page=${page}`
     )
     return response.data
   }

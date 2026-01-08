@@ -14,6 +14,9 @@ export interface IUser {
 	referralCode?: string
 	referralLink?: string
 	referrerId?: string
+	payoutCreditCard?: string
+	payoutPaypal?: string
+	payoutUsdt?: string
 	verificationToken?: string
 	activePlanId?: string
 	activePlanName?: string

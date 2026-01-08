@@ -97,8 +97,8 @@ const planSettingsNav = [
 
 const managementSettingsNav = [
   {
-    title: "Management Settings",
-    url: "/admin/management-settings",
+    title: "Withdraw requests",
+    url: "/admin/management",
     icon: Settings,
   },
 ]

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
+import { useQuery } from "@tanstack/react-query"
 
 import { DataTable } from "@/components/data-table/data-table"
 import { DataTableColumnHeader } from "@/components/data-table/column-header"
@@ -27,6 +28,7 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
 import userService, { type IUserReferral, type IUserReferralsParams } from "@/services/user.service"
+import mlmEngineService from "@/services/mlm-engine.service"
 
 interface ReferralTableRow extends ExportableData, IUserReferral {}
 
@@ -61,6 +63,11 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 export default function PartnersPage() {
   const [ready, setReady] = useState(false)
   const skeletonCards = useMemo(() => Array.from({ length: 4 }), [])
+  const { data: enabledModules } = useQuery({
+    queryKey: ["mlm-enabled-modules"],
+    queryFn: () => mlmEngineService.fetchEnabledModuleKeys(),
+  })
+  const isBinaryActive = enabledModules?.includes("binary")
 
   useEffect(() => {
     const timer = setTimeout(() => setReady(true), 600)
@@ -159,18 +166,20 @@ export default function PartnersPage() {
           }
         : args[0]
 
-    const response = await userService.fetchUserReferrals(params)
+    const response = isBinaryActive
+      ? await userService.fetchBinaryPartners(params)
+      : await userService.fetchUserReferrals(params)
 
     return {
       success: response.success,
       data: response.data,
       pagination: response.pagination,
     }
-  }, [])
+  }, [isBinaryActive])
 
   const referralExportConfig = useMemo(
     () => ({
-      entityName: "referrals",
+      entityName: "partners",
       columnMapping: {
         id: "ID",
         name: "Name",
