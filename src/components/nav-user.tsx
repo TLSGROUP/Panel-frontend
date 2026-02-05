@@ -134,26 +134,6 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                onSelect={() => router.push("/dashboard/profile")}
-              >
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => router.push("/dashboard/billing")}
-              >
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => router.push("/dashboard/notifications")}
-              >
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               disabled={isLogoutPending}
