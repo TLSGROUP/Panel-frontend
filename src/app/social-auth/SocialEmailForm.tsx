@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import styles from '../auth/form/AuthForm.module.scss'
+import styles from '../(auth)/form/AuthForm.module.scss'
 
 import { MiniLoader } from '@/components/ui/MiniLoader'
 import { twMerge } from 'tailwind-merge'
