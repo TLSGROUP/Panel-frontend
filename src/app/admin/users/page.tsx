@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { Suspense, useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Eye, Pencil, Trash2 } from "lucide-react"
 
@@ -72,12 +72,14 @@ export default function AdminUsersPage() {
   const [activeUser, setActiveUser] = useState<IUser | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [refreshToken, setRefreshToken] = useState(0)
+  
   const readOnlyInputProps = {
     readOnly: true,
     tabIndex: -1,
     onFocus: (event: React.FocusEvent<HTMLInputElement>) =>
       event.currentTarget.blur(),
   }
+  
   const dateFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat("en-US", {
@@ -181,9 +183,11 @@ export default function AdminUsersPage() {
         <DataTableColumnHeader column={column} title="Registered" />
       ),
       cell: ({ row }) => {
-        const parsed = row.original.createdAt
-          ? new Date(row.original.createdAt)
-          : null
+        const parsed =
+          typeof row.original.createdAt === "string" ||
+          typeof row.original.createdAt === "number"
+            ? new Date(row.original.createdAt)
+            : null
         return (
           <span className="text-sm text-muted-foreground">
             {parsed && !Number.isNaN(parsed.getTime())
@@ -200,9 +204,11 @@ export default function AdminUsersPage() {
         <DataTableColumnHeader column={column} title="Updated" />
       ),
       cell: ({ row }) => {
-        const parsed = row.original.updatedAt
-          ? new Date(row.original.updatedAt)
-          : null
+        const parsed =
+          typeof row.original.updatedAt === "string" ||
+          typeof row.original.updatedAt === "number"
+            ? new Date(row.original.updatedAt)
+            : null
         return (
           <span className="text-sm text-muted-foreground">
             {parsed && !Number.isNaN(parsed.getTime())
@@ -219,7 +225,7 @@ export default function AdminUsersPage() {
         <DataTableColumnHeader column={column} title="Role" />
       ),
       cell: ({ row }) => {
-        const roles = row.original.rights ?? []
+        const roles = Array.isArray(row.original.rights) ? row.original.rights : []
         const label = roles.length > 0 ? roles.join(", ") : "User"
         return <span>{label}</span>
       },
@@ -319,7 +325,7 @@ export default function AdminUsersPage() {
       enableToolbar: true,
       columnResizingTableId: "admin-users",
       defaultSortBy: "id",
-      defaultSortOrder: "desc",
+      defaultSortOrder: "desc" as const,
     }),
     []
   )
@@ -400,16 +406,24 @@ export default function AdminUsersPage() {
             <CardDescription>Manage platform users.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <DataTable
-              config={tableConfig}
-              getColumns={() => columns}
-              fetchDataFn={fetchUsers}
-              exportConfig={exportConfig}
-              idField="id"
-              pageSizeOptions={[10, 20, 50]}
-              keepPreviousData
-              refreshToken={refreshToken}
-            />
+            <Suspense
+              fallback={
+                <div className="rounded-md border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+                  Loading users…
+                </div>
+              }
+            >
+              <DataTable
+                config={tableConfig}
+                getColumns={() => columns as any}
+                fetchDataFn={fetchUsers}
+                exportConfig={exportConfig}
+                idField="id"
+                pageSizeOptions={[10, 20, 50]}
+                keepPreviousData
+                refreshToken={refreshToken}
+              />
+            </Suspense>
           </CardContent>
         </Card>
       </div>
@@ -525,7 +539,7 @@ export default function AdminUsersPage() {
             <div className="max-h-[70vh] overflow-y-auto pr-1">
               <UserForm
                 type="edit"
-                id={activeUser.id}
+                id={String(activeUser.id)}
                 onSuccess={() => setEditOpen(false)}
               />
             </div>
@@ -536,10 +550,10 @@ export default function AdminUsersPage() {
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen} modal={false}>
         <DialogContent className="border border-white/10 bg-black/60 text-white backdrop-blur-md md:left-[calc(50%+8rem)]">
           <DialogHeader>
-          <DialogTitle>Deactivate user?</DialogTitle>
-          <DialogDescription>
+            <DialogTitle>Deactivate user?</DialogTitle>
+            <DialogDescription>
               This will replace personal data with a technical account.
-          </DialogDescription>
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>

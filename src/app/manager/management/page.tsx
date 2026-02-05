@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { Suspense, useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import toast from "react-hot-toast"
 
@@ -136,7 +136,7 @@ export default function ManagerManagementPage() {
           type="button"
           className="rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-white transition hover:bg-emerald-500/90"
           onClick={() => {
-            setDetailsValue(row.original.details)
+            setDetailsValue(row.original.details ?? null)
             setDetailsAmount(row.original.amount)
             setDetailsMethod(row.original.method)
             setDetailsId(row.original.id)
@@ -199,23 +199,14 @@ export default function ManagerManagementPage() {
   ], [])
 
   const fetchRequests = useCallback(
-    async ({
-      page,
-      limit,
-      search,
-      from_date,
-      to_date,
-      sort_by,
-      sort_order,
-    }: WithdrawalsParams & {
-      page: number
-      limit: number
-      search: string
-      from_date: string
-      to_date: string
-      sort_by: string
+    async (
+      page: number,
+      limit: number,
+      search: string,
+      { from_date, to_date }: { from_date: string; to_date: string },
+      sort_by: string,
       sort_order: string
-    }) => {
+    ) => {
       return withdrawalService.fetchRequests({
         page,
         limit,
@@ -223,7 +214,7 @@ export default function ManagerManagementPage() {
         from_date,
         to_date,
         sort_by,
-        sort_order,
+        sort_order: (sort_order as "asc" | "desc" | undefined),
       })
     },
     []
@@ -340,16 +331,24 @@ export default function ManagerManagementPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-            <DataTable
-              config={requestTableConfig}
-              getColumns={() => requestColumns}
-              fetchDataFn={fetchRequests}
-              exportConfig={requestExportConfig}
-              idField="id"
-              pageSizeOptions={[5, 10, 20]}
-              refreshToken={refreshToken}
-              keepPreviousData
-            />
+              <Suspense
+                fallback={
+                  <div className="rounded-md border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+                    Loading withdraw requests…
+                  </div>
+                }
+              >
+                <DataTable
+                  config={requestTableConfig}
+                  getColumns={() => requestColumns}
+                  fetchDataFn={fetchRequests}
+                  exportConfig={requestExportConfig}
+                  idField="id"
+                  pageSizeOptions={[5, 10, 20]}
+                  refreshToken={refreshToken}
+                  keepPreviousData
+                />
+              </Suspense>
             </CardContent>
           </Card>
           <Dialog open={detailsOpen} onOpenChange={setDetailsOpen} modal={false}>

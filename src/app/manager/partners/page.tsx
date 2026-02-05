@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { Suspense, useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useQuery } from "@tanstack/react-query"
 
@@ -268,14 +268,22 @@ export default function PartnersPage() {
               <CardTitle>Partners</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <DataTable
-                config={referralTableConfig}
-                getColumns={getReferralColumns}
-                fetchDataFn={fetchReferralData}
-                exportConfig={referralExportConfig}
-                idField="id"
-                pageSizeOptions={[10, 20, 30, 40, 50]}
-              />
+              <Suspense
+                fallback={
+                  <div className="rounded-md border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+                    Loading partners…
+                  </div>
+                }
+              >
+                <DataTable
+                  config={referralTableConfig}
+                  getColumns={getReferralColumns}
+                  fetchDataFn={fetchReferralData}
+                  exportConfig={referralExportConfig}
+                  idField="id"
+                  pageSizeOptions={[10, 20, 30, 40, 50]}
+                />
+              </Suspense>
             </CardContent>
           </Card>
         </div>

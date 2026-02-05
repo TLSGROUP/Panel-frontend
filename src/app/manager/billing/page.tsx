@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from "react"
+import { Suspense, useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { ManagerSidebar } from "@/components/manager-sidebar"
@@ -109,7 +109,7 @@ export default function BillingPage() {
       toast.error("Failed to download receipt")
     }
   }, [])
-  const historyColumns = useMemo<ColumnDef<BillingTableRow, unknown>[]>(() => [
+  const historyColumns = useMemo<ColumnDef<BillingHistoryItem, unknown>[]>(() => [
     {
       accessorKey: "createdAt",
       header: ({ column }) => (
@@ -212,7 +212,7 @@ export default function BillingPage() {
     },
   ], [])
 
-  const withdrawalColumns = useMemo<ColumnDef<WithdrawalTableRow, unknown>[]>(
+  const withdrawalColumns = useMemo<ColumnDef<WithdrawalRequest, unknown>[]>(
     () => [
       {
         accessorKey: "requestId",
@@ -418,7 +418,7 @@ export default function BillingPage() {
       enableToolbar: true,
       columnResizingTableId: "billing-history-manager",
       defaultSortBy: "createdAt",
-      defaultSortOrder: "desc",
+      defaultSortOrder: "desc" as const,
     }),
     []
   )
@@ -435,7 +435,7 @@ export default function BillingPage() {
       enableToolbar: true,
       columnResizingTableId: "billing-withdrawals-manager",
       defaultSortBy: "createdAt",
-      defaultSortOrder: "desc",
+      defaultSortOrder: "desc" as const,
     }),
     []
   )
@@ -476,15 +476,23 @@ export default function BillingPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <DataTable
-                config={historyTableConfig}
-                getColumns={() => historyColumns}
-                fetchDataFn={fetchHistoryData}
-                exportConfig={historyExportConfig}
-                idField="id"
-                pageSizeOptions={[5, 10, 20]}
-                keepPreviousData
-              />
+              <Suspense
+                fallback={
+                  <div className="rounded-md border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+                    Loading billing history…
+                  </div>
+                }
+              >
+                <DataTable
+                  config={historyTableConfig}
+                  getColumns={() => historyColumns}
+                  fetchDataFn={fetchHistoryData}
+                  exportConfig={historyExportConfig}
+                  idField="id"
+                  pageSizeOptions={[5, 10, 20]}
+                  keepPreviousData
+                />
+              </Suspense>
             </CardContent>
           </Card>
           <Card>
@@ -495,41 +503,49 @@ export default function BillingPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <DataTable
-                config={withdrawalsTableConfig}
-                getColumns={() => withdrawalColumns}
-                fetchDataFn={fetchWithdrawalData}
-                exportConfig={{
-                  entityName: "withdrawal-requests",
-                  columnMapping: {
-                    requestId: "Request ID",
-                    amount: "Amount",
-                    currency: "Currency",
-                    method: "Method",
-                    status: "Status",
-                    createdAt: "Requested",
-                  },
-                  columnWidths: [
-                    { wch: 16 },
-                    { wch: 12 },
-                    { wch: 10 },
-                    { wch: 16 },
-                    { wch: 12 },
-                    { wch: 14 },
-                  ],
-                  headers: [
-                    "Request ID",
-                    "Amount",
-                    "Currency",
-                    "Method",
-                    "Status",
-                    "Requested",
-                  ],
-                }}
-                idField="id"
-                pageSizeOptions={[5, 10, 20]}
-                keepPreviousData
-              />
+              <Suspense
+                fallback={
+                  <div className="rounded-md border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+                    Loading withdrawal requests…
+                  </div>
+                }
+              >
+                <DataTable
+                  config={withdrawalsTableConfig}
+                  getColumns={() => withdrawalColumns}
+                  fetchDataFn={fetchWithdrawalData}
+                  exportConfig={{
+                    entityName: "withdrawal-requests",
+                    columnMapping: {
+                      requestId: "Request ID",
+                      amount: "Amount",
+                      currency: "Currency",
+                      method: "Method",
+                      status: "Status",
+                      createdAt: "Requested",
+                    },
+                    columnWidths: [
+                      { wch: 16 },
+                      { wch: 12 },
+                      { wch: 10 },
+                      { wch: 16 },
+                      { wch: 12 },
+                      { wch: 14 },
+                    ],
+                    headers: [
+                      "Request ID",
+                      "Amount",
+                      "Currency",
+                      "Method",
+                      "Status",
+                      "Requested",
+                    ],
+                  }}
+                  idField="id"
+                  pageSizeOptions={[5, 10, 20]}
+                  keepPreviousData
+                />
+              </Suspense>
             </CardContent>
           </Card>
         </div>
