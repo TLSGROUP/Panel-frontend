@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useQuery } from "@tanstack/react-query"
 
@@ -8,7 +8,6 @@ import { DataTable } from "@/components/data-table/data-table"
 import { DataTableColumnHeader } from "@/components/data-table/column-header"
 import type { ExportableData } from "@/components/data-table/utils/export-utils"
 import { LanguagePicker } from "@/components/language/LanguagePicker"
-import { SectionCards } from "@/components/ui/section-cards"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -26,7 +25,6 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { Skeleton } from "@/components/ui/skeleton"
 import userService, { type IUserReferral, type IUserReferralsParams } from "@/services/user.service"
 import mlmEngineService from "@/services/mlm-engine.service"
 
@@ -61,18 +59,11 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 })
 
 export default function PartnersPage() {
-  const [ready, setReady] = useState(false)
-  const skeletonCards = useMemo(() => Array.from({ length: 4 }), [])
   const { data: enabledModules } = useQuery({
     queryKey: ["mlm-enabled-modules"],
     queryFn: () => mlmEngineService.fetchEnabledModuleKeys(),
   })
   const isBinaryActive = enabledModules?.includes("binary")
-
-  useEffect(() => {
-    const timer = setTimeout(() => setReady(true), 600)
-    return () => clearTimeout(timer)
-  }, [])
 
   const referralColumns = useMemo<ColumnDef<ReferralTableRow, unknown>[]>(() => [
     {
@@ -265,28 +256,6 @@ export default function PartnersPage() {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {ready ? (
-            <SectionCards />
-          ) : (
-            <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4 lg:px-6">
-              {skeletonCards.map((_, index) => (
-                <Card key={`ref-skeleton-${index}`} className="@container/card">
-                  <CardHeader>
-                    <CardDescription>
-                      <Skeleton className="h-4 w-32 rounded-full" />
-                    </CardDescription>
-                    <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                      <Skeleton className="h-9 w-24 rounded-md" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Skeleton className="h-4 w-3/4 rounded-full" />
-                    <Skeleton className="h-4 w-2/3 rounded-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
           <Card>
             <CardHeader>
               <CardTitle>Partners</CardTitle>

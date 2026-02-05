@@ -19,6 +19,12 @@ export type MlmModuleConfig = {
   settings: Record<string, MlmSettingValue>
 }
 
+export type MlmModuleSettings = {
+  key: string
+  label: string
+  settings: Record<string, MlmSettingValue>
+}
+
 export type MlmSettingValue =
   | string
   | number
@@ -45,6 +51,11 @@ class MlmEngineService {
 
   async fetchEnabledModuleKeys() {
     const response = await instance.get<string[]>("/mlm-engine/enabled")
+    return response.data
+  }
+
+  async fetchModuleSettings(key: string) {
+    const response = await instance.get<MlmModuleSettings>(`/mlm-engine/modules/${key}`)
     return response.data
   }
 }

@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query"
 import { CreditCard } from "lucide-react"
 
 import { LanguagePicker } from "@/components/language/LanguagePicker"
-import { SectionCards } from "@/components/ui/section-cards"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -36,9 +35,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { PayPalIcon } from "@/components/icons/paypal-icon"
 import { TetherIcon } from "@/components/icons/tether-icon"
+import { BinaryWalletCards } from "@/components/ui/binary-wallet-cards"
 import { useProfile } from "@/hooks/useProfile"
 import userService from "@/services/user.service"
 import walletService, { type WalletTransaction } from "@/services/wallet.service"
+import withdrawalService from "@/services/withdrawal.service"
 
 function formatCurrency(amount: number, currency: string | null) {
   const value = amount / 100
@@ -116,8 +117,10 @@ export default function WalletPage() {
   const { data: transactionsPage, isLoading: transactionsLoading } = useQuery({
     queryKey: ["wallet-transactions", page],
     queryFn: () => walletService.fetchTransactions(pageSize, page),
+    placeholderData: (previous) => previous,
   })
-  const isLoading = walletLoading || transactionsLoading
+  const isWalletLoading = walletLoading
+  const isTransactionsLoading = transactionsLoading && !transactionsPage
   const balanceText = formatCurrency(wallet?.balance ?? 0, wallet?.currency ?? null)
   const transactions = transactionsPage?.items ?? []
   const totalPages = Math.max(
@@ -140,13 +143,13 @@ export default function WalletPage() {
   const availableMethods = useMemo(() => {
     const methods: { value: string; label: string }[] = []
     if (payoutDetails.creditCard) {
-      methods.push({ value: "creditCard", label: "Credit card" })
+      methods.push({ value: "CREDIT_CARD", label: "Credit card" })
     }
     if (payoutDetails.paypal) {
-      methods.push({ value: "paypal", label: "PayPal" })
+      methods.push({ value: "PAYPAL", label: "PayPal" })
     }
     if (payoutDetails.usdt) {
-      methods.push({ value: "usdt", label: "USDT (TRC20)" })
+      methods.push({ value: "USDT_TRC20", label: "USDT (TRC20)" })
     }
     return methods
   }, [payoutDetails.creditCard, payoutDetails.paypal, payoutDetails.usdt])
@@ -211,12 +214,20 @@ export default function WalletPage() {
         ? null
         : "Select a withdrawal method."
 
-  const handleConfirmWithdraw = () => {
+  const handleConfirmWithdraw = async () => {
     if (amountError || methodError) return
-    setWithdrawMessage("Withdrawal request submitted.")
-    setWithdrawAmount("")
-    setWithdrawMethod("")
-    setWithdrawOpen(false)
+    try {
+      await withdrawalService.createRequest({
+        amount: parsedAmount,
+        method: withdrawMethod as "CREDIT_CARD" | "PAYPAL" | "USDT_TRC20",
+      })
+      setWithdrawMessage("Withdrawal request submitted.")
+      setWithdrawAmount("")
+      setWithdrawMethod("")
+      setWithdrawOpen(false)
+    } catch {
+      setWithdrawMessage("Unable to submit withdrawal request.")
+    }
   }
 
   return (
@@ -245,27 +256,7 @@ export default function WalletPage() {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {!isLoading ? (
-            <SectionCards />
-          ) : (
-            <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4 lg:px-6">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <Card key={`wallet-skeleton-${index}`} className="@container/card">
-                  <CardHeader>
-                    <CardDescription>
-                      <Skeleton className="h-4 w-28 rounded-full" />
-                    </CardDescription>
-                    <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                      <Skeleton className="h-9 w-24 rounded-md" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-4 w-2/3 rounded-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          <BinaryWalletCards />
           <div className="grid gap-4 lg:grid-cols-2">
             <Card className="flex flex-col">
               <CardHeader>
@@ -275,7 +266,7 @@ export default function WalletPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
-                {!isLoading ? (
+                {!isWalletLoading ? (
                   <>
                     <div className="text-center">
                       <p className="text-sm text-muted-foreground">
@@ -477,7 +468,7 @@ export default function WalletPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex min-h-[560px] flex-col gap-4">
-                {!isLoading && transactions.length > 0 ? (
+                {!isTransactionsLoading && transactions.length > 0 ? (
                   transactions.map((transaction) => {
                     const sourceName = getSourceName(transaction)
                     const amountLabel = formatCurrency(
@@ -514,7 +505,7 @@ export default function WalletPage() {
                       </div>
                     )
                   })
-                ) : !isLoading ? (
+                ) : !isTransactionsLoading ? (
                   <div className="text-sm text-muted-foreground">
                     No transactions yet.
                   </div>
@@ -529,7 +520,9 @@ export default function WalletPage() {
                     </div>
                   ))
                 )}
-                {!isLoading && transactionsPage && transactionsPage.total > 0 ? (
+                {!isTransactionsLoading &&
+                transactionsPage &&
+                transactionsPage.total > 0 ? (
                   <div className="mt-auto flex items-center justify-between pt-2">
                     <button
                       className="rounded-md border border-border/70 px-3 py-1 text-sm text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"

@@ -10,6 +10,38 @@ export type PlanCatalogItem = {
   color?: string
 }
 
+export type BillingHistoryItem = {
+  id: string
+  type: "Payment" | "Payout"
+  amount: number
+  currency: string
+  plan: string
+  status: string
+  source: string
+  createdAt: string
+}
+
+export type BillingHistoryResponse = {
+  success: boolean
+  data: BillingHistoryItem[]
+  pagination: {
+    page: number
+    limit: number
+    total_pages: number
+    total_items: number
+  }
+}
+
+export type BillingHistoryParams = {
+  page?: number
+  limit?: number
+  search?: string
+  from_date?: string
+  to_date?: string
+  sort_by?: string
+  sort_order?: "asc" | "desc"
+}
+
 class PaymentService {
   async fetchPlans() {
     const response = await instance.get<PlanCatalogItem[]>("/payments/plans")
@@ -64,6 +96,13 @@ class PaymentService {
   async confirmStripePayment(paymentId: string) {
     const response = await instance.post<{ status: string }>("/payments/stripe/confirm", {
       paymentId
+    })
+    return response.data
+  }
+
+  async fetchBillingHistory(params: BillingHistoryParams) {
+    const response = await instance.get<BillingHistoryResponse>("/payments/history", {
+      params,
     })
     return response.data
   }

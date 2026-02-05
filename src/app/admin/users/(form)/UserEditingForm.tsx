@@ -3,8 +3,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { Button } from '@/components/ui/button/Button'
-import { Loader } from '@/components/ui/loader/Loader'
+import { Button } from '@/components/ui/button'
 import Skeleton from 'react-loading-skeleton'
 import { UserFormHeading } from './UserFormHeading'
 import { UserMainFields } from './fields/UserMainFields'
@@ -37,10 +36,14 @@ export function UserEditingForm({
 		if (watch('email') && type === 'edit') return
 
 		reset({
-			avatarUrl: data.avatarUrl,
 			country: data.country,
+			city: data.city,
 			email: data.email,
-			role: data.role,
+			lastName: data.lastName,
+			name: data.name,
+			phone: data.phone,
+			rights: data.rights,
+			isVerified: !data.verificationToken,
 		})
 	}, [data])
 
@@ -50,13 +53,8 @@ export function UserEditingForm({
 
 	if (initialUserLoading) return <Skeleton />
 
-	return isLoading ? (
-		<Loader />
-	) : (
+	return (
 		<div className='p-6'>
-			<h1>
-				<UserFormHeading type={type} email={data?.email} />
-			</h1>
 			<form
 				className='min-lg:mt-10 mt-5'
 				autoComplete='off'
@@ -67,7 +65,7 @@ export function UserEditingForm({
 				<UserProfileFields control={control} register={register} />
 
 				<Button
-					variant='primary'
+					variant='default'
 					className='min-lg:mt-10 mt-5'
 					disabled={isLoading}
 					type='submit'
@@ -76,7 +74,6 @@ export function UserEditingForm({
 				</Button>
 			</form>
 
-			<Loader />
 		</div>
 	)
 }

@@ -9,6 +9,7 @@ import {
   Bot,
   ChevronDown,
   CreditCard,
+  Users,
   Map,
   Network,
   Settings,
@@ -200,6 +201,17 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === "/admin/users"}
+              >
+                <Link href="/admin/users">
+                  <Users />
+                  <span>Users</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
         <NavMain items={managementSettingsItems} label="Management Settings" />

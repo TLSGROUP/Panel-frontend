@@ -7,10 +7,15 @@ import userService from '@/services/user.service'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { IQueriesResult, IUserFormState } from './user-form.types'
 
-export function useUserQueries(id = '', isCreateForm: boolean): IQueriesResult {
+export function useUserQueries(
+	id = '',
+	isCreateForm: boolean,
+	onSuccess?: () => void
+): IQueriesResult {
 	const { data, isLoading, refetch } = useQuery({
 		queryKey: ['user', id],
-		queryFn: () => userService.getUserById(id),
+		queryFn: () => userService.fetchUserById(id),
+		enabled: Boolean(id),
 	})
 
 	const { push } = useRouter()
@@ -31,22 +36,36 @@ export function useUserQueries(id = '', isCreateForm: boolean): IQueriesResult {
 		mutationKey: ['updateUser'],
 		mutationFn: (data: IUserFormState) => userService.updateUser(id, data),
 		onSuccess() {
-			toast.success('Пользователь успешно обновлен!')
+			toast.success('User updated')
 			refetch()
+			onSuccess?.()
+		},
+		onError(error: any) {
+			console.error('Failed to update user', error)
+			const message =
+				error?.response?.data?.message ||
+				error?.message ||
+				'Failed to update user'
+			toast.error(message)
 		},
 	})
 
 	const onSubmit: SubmitHandler<IUserFormState> = async data => {
+		const payload = { ...data }
+		if (!payload.password) {
+			delete payload.password
+		}
 		if (isCreateForm) {
-			createUser(data)
+			createUser(payload)
 		} else if (id) {
-			updateUser(data)
+			updateUser(payload)
 		}
 	}
 
 	return {
 		data: data?.data,
 		isLoading: isLoading || isLoadingUpdate,
+		initialUserLoading: isLoading,
 		onSubmit,
 		isNeedResetForm,
 	}

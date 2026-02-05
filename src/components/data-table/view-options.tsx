@@ -172,7 +172,7 @@ export function DataTableViewOptions<TData>({
   }, [columnMapping]);
 
   return (
-    <Popover>
+    <Popover modal={false}>
       <PopoverTrigger asChild>
         <Button
           aria-label="Toggle columns"

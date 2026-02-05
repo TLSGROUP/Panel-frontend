@@ -11,6 +11,21 @@ export interface ICountryCount {
 	count: number
 }
 
+export interface DashboardSummary {
+	totalRevenue: number
+	netRevenue: number
+	currency: string
+	newPartners: number
+	totalPartners: number
+	growthRate: number
+	activePartners: number
+	conversionRate: number
+	avgRevenuePerPartner: number
+	topLineGrowth7d: number
+	topLineGrowth30d: number
+	payoutRatio: number
+}
+
 class StatisticsService {
 	private base = '/statistics'
 
@@ -28,6 +43,10 @@ class StatisticsService {
 
 	async getCountByCountry() {
 		return instance.get<ICountryCount[]>(`${this.base}/count-by-country`)
+	}
+
+	async getDashboardSummary() {
+		return instance.get<DashboardSummary>(`${this.base}/summary`)
 	}
 }
 

@@ -1,3 +1,15 @@
 .input-field {
-	@apply w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-primary bg-transparent text-white transition-colors mt-1;
+	width: 100%;
+	padding: 0.5rem;
+	border: 1px solid rgb(209 213 219);
+	border-radius: 0.25rem;
+	background: transparent;
+	color: #fff;
+	margin-top: 0.25rem;
+	transition: color 150ms ease, border-color 150ms ease;
+}
+
+.input-field:focus {
+	outline: none;
+	border-color: hsl(var(--primary));
 }

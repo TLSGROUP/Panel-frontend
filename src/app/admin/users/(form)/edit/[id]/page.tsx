@@ -5,10 +5,11 @@ export const metadata: Metadata = {
 	title: 'Редактирование пользователя',
 }
 
-export default function EditUserPage({
-	params: { id },
+export default async function EditUserPage({
+	params,
 }: {
-	params: { id: string }
+	params: Promise<{ id: string }>
 }) {
+	const { id } = await params
 	return <UserForm type='edit' id={id} />
 }

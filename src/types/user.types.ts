@@ -23,6 +23,8 @@ export interface IUser {
 	activePlanPrice?: number
 	activePlanCurrency?: string
 	activePlanPurchasedAt?: string
+	createdAt?: string
+	updatedAt?: string
 	rights: UserRole[]
 	language: Language
 }

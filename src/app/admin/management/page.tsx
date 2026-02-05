@@ -1,7 +1,8 @@
 "use client"
 
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
+import toast from "react-hot-toast"
 
 import { DataTable } from "@/components/data-table/data-table"
 import { DataTableColumnHeader } from "@/components/data-table/column-header"
@@ -22,104 +23,57 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import withdrawalService, {
+  type WithdrawalRequest,
+  type WithdrawalsParams,
+} from "@/services/withdrawal.service"
+import { FileService } from "@/services/file.service"
+import { instance } from "@/api/axios"
 
-type WithdrawRequestRow = ExportableData & {
-  id: string
-  userId: string
-  name: string
-  lastName: string
-  email: string
-  amount: number
-  method: string
-  details: string
-  status: string
-  requestedAt: string
-}
-
-const withdrawRequests: WithdrawRequestRow[] = [
-  {
-    id: "WR-2301",
-    userId: "U-1024",
-    name: "Alex",
-    lastName: "Morgan",
-    email: "alex.morgan@example.com",
-    amount: 250,
-    method: "USDT (TRC20)",
-    details: "USDT (TRC20): TQ8Z...P9JL",
-    status: "Pending",
-    requestedAt: "2024-11-06",
-  },
-  {
-    id: "WR-2298",
-    userId: "U-1008",
-    name: "Jamie",
-    lastName: "Chen",
-    email: "jamie.chen@example.com",
-    amount: 120,
-    method: "PayPal",
-    details: "PayPal: jamie.chen@example.com",
-    status: "Pending",
-    requestedAt: "2024-11-05",
-  },
-  {
-    id: "WR-2294",
-    userId: "U-0988",
-    name: "Sara",
-    lastName: "Lee",
-    email: "sara.lee@example.com",
-    amount: 340,
-    method: "Credit card",
-    details: "Card: **** 4242",
-    status: "Approved",
-    requestedAt: "2024-11-03",
-  },
-  {
-    id: "WR-2289",
-    userId: "U-0963",
-    name: "Ivan",
-    lastName: "Petrov",
-    email: "ivan.petrov@example.com",
-    amount: 90,
-    method: "USDT (TRC20)",
-    details: "USDT (TRC20): TX2L...K7QF",
-    status: "Pending",
-    requestedAt: "2024-11-02",
-  },
-  {
-    id: "WR-2281",
-    userId: "U-0934",
-    name: "Nora",
-    lastName: "King",
-    email: "nora.king@example.com",
-    amount: 480,
-    method: "PayPal",
-    details: "PayPal: nora.king@example.com",
-    status: "Rejected",
-    requestedAt: "2024-10-29",
-  },
-  {
-    id: "WR-2276",
-    userId: "U-0907",
-    name: "Liam",
-    lastName: "Ross",
-    email: "liam.ross@example.com",
-    amount: 75,
-    method: "Credit card",
-    details: "Card: **** 1134",
-    status: "Pending",
-    requestedAt: "2024-10-27",
-  },
-]
+type WithdrawRequestRow = ExportableData & WithdrawalRequest
 
 export default function AdminManagementPage() {
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [detailsValue, setDetailsValue] = useState<string | null>(null)
+  const [detailsAmount, setDetailsAmount] = useState<number | null>(null)
+  const [detailsMethod, setDetailsMethod] = useState<string | null>(null)
+  const [detailsId, setDetailsId] = useState<string | null>(null)
+  const [detailsStatus, setDetailsStatus] = useState<string | null>(null)
+  const [detailsReceiptUrl, setDetailsReceiptUrl] = useState<string | null>(null)
+  const [detailsTxHash, setDetailsTxHash] = useState<string | null>(null)
+  const [txHash, setTxHash] = useState("")
+  const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const [rejectReason, setRejectReason] = useState("")
+  const [refreshToken, setRefreshToken] = useState(0)
+  const receiptInputId = "admin-withdraw-receipt"
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      }),
+    []
+  )
   const requestColumns = useMemo<ColumnDef<WithdrawRequestRow, unknown>[]>(() => [
     {
-      accessorKey: "id",
+      accessorKey: "requestId",
       header: "Request ID",
       cell: ({ row }) => (
-        <span className="font-semibold tracking-tight">{row.original.id}</span>
+        <span className="font-semibold tracking-tight">
+          {row.original.requestId}
+        </span>
       ),
       enableSorting: true,
     },
@@ -173,9 +127,25 @@ export default function AdminManagementPage() {
       accessorKey: "details",
       header: "Details",
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.original.details}
-        </span>
+        <button
+          type="button"
+          className="rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-white transition hover:bg-emerald-500/90"
+          onClick={() => {
+            setDetailsValue(row.original.details)
+            setDetailsAmount(row.original.amount)
+            setDetailsMethod(row.original.method)
+            setDetailsId(row.original.id)
+            setDetailsStatus(row.original.status)
+            setDetailsReceiptUrl(row.original.receiptUrl ?? null)
+            setDetailsTxHash(row.original.txHash ?? null)
+            setTxHash("")
+            setReceiptFile(null)
+            setRejectReason("")
+            setDetailsOpen(true)
+          }}
+        >
+          View
+        </button>
       ),
       enableSorting: true,
     },
@@ -185,28 +155,38 @@ export default function AdminManagementPage() {
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => (
-        <span
-          className={`rounded-full border px-3 py-1 text-xs ${
-            row.original.status === "Approved"
+        (() => {
+          const status = row.original.status
+          const label =
+            status === "PAID" ? "Paid" : status === "REJECTED" ? "Rejected" : "Pending"
+          const tone =
+            status === "PAID"
               ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
-              : row.original.status === "Rejected"
+              : status === "REJECTED"
                 ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
                 : "border-amber-500/40 bg-amber-500/10 text-amber-200"
-          }`}
-        >
-          {row.original.status}
-        </span>
+          return (
+            <span className={`rounded-full border px-3 py-1 text-xs ${tone}`}>
+              {label}
+            </span>
+          )
+        })()
       ),
       enableSorting: true,
     },
     {
-      accessorKey: "requestedAt",
+      accessorKey: "createdAt",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Requested" />
       ),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
-          {row.original.requestedAt}
+          {(() => {
+            const parsed = new Date(row.original.createdAt)
+            return Number.isNaN(parsed.getTime())
+              ? "—"
+              : dateFormatter.format(parsed)
+          })()}
         </span>
       ),
       enableSorting: true,
@@ -218,9 +198,11 @@ export default function AdminManagementPage() {
       page,
       limit,
       search,
+      from_date,
+      to_date,
       sort_by,
       sort_order,
-    }: {
+    }: WithdrawalsParams & {
       page: number
       limit: number
       search: string
@@ -229,59 +211,43 @@ export default function AdminManagementPage() {
       sort_by: string
       sort_order: string
     }) => {
-      const normalizedSearch = search.trim().toLowerCase()
-      const filtered = normalizedSearch
-        ? withdrawRequests.filter((item) => {
-            const haystack = [
-              item.id,
-              item.userId,
-              item.name,
-              item.lastName,
-              item.email,
-              item.method,
-              item.details,
-              item.status,
-            ]
-              .join(" ")
-              .toLowerCase()
-            return haystack.includes(normalizedSearch)
-          })
-        : withdrawRequests
-
-      const sorted = [...filtered].sort((a, b) => {
-        const direction = sort_order === "asc" ? 1 : -1
-        const field = sort_by as keyof WithdrawRequestRow
-        const left = a[field]
-        const right = b[field]
-        if (typeof left === "number" && typeof right === "number") {
-          return (left - right) * direction
-        }
-        return String(left).localeCompare(String(right)) * direction
+      return withdrawalService.fetchRequests({
+        page,
+        limit,
+        search,
+        from_date,
+        to_date,
+        sort_by,
+        sort_order,
       })
-
-      const total_items = sorted.length
-      const total_pages = Math.max(1, Math.ceil(total_items / limit))
-      const start = (page - 1) * limit
-      const data = sorted.slice(start, start + limit)
-
-      return {
-        success: true,
-        data,
-        pagination: {
-          page,
-          limit,
-          total_pages,
-          total_items,
-        },
-      }
     },
     []
   )
 
+  const handleReceiptDownload = useCallback(async (receiptUrl: string) => {
+    try {
+      const response = await instance.get<Blob>("/media/download", {
+        params: { path: receiptUrl },
+        responseType: "blob",
+      })
+      const blobUrl = URL.createObjectURL(response.data)
+      const link = document.createElement("a")
+      link.href = blobUrl
+      link.download = receiptUrl.split("/").pop() || "receipt"
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(blobUrl)
+    } catch (error) {
+      console.error("Failed to download receipt", error)
+      toast.error("Failed to download receipt")
+    }
+  }, [])
+
   const requestTableConfig = useMemo(
     () => ({
       columnResizingTableId: "withdraw-requests",
-      defaultSortBy: "requestedAt",
+      defaultSortBy: "createdAt",
       defaultSortOrder: "desc" as const,
       enableColumnFilters: false,
       enableColumnVisibility: false,
@@ -294,7 +260,7 @@ export default function AdminManagementPage() {
     () => ({
       entityName: "withdraw-requests",
       columnMapping: {
-        id: "Request ID",
+        requestId: "Request ID",
         userId: "User ID",
         name: "Name",
         lastName: "Last name",
@@ -303,7 +269,7 @@ export default function AdminManagementPage() {
         method: "Method",
         details: "Details",
         status: "Status",
-        requestedAt: "Requested",
+        createdAt: "Requested",
       },
       columnWidths: [
         { wch: 12 },
@@ -318,7 +284,7 @@ export default function AdminManagementPage() {
         { wch: 14 },
       ],
       headers: [
-        "id",
+        "requestId",
         "userId",
         "name",
         "lastName",
@@ -327,7 +293,7 @@ export default function AdminManagementPage() {
         "method",
         "details",
         "status",
-        "requestedAt",
+        "createdAt",
       ],
     }),
     []
@@ -374,9 +340,194 @@ export default function AdminManagementPage() {
               exportConfig={requestExportConfig}
               idField="id"
               pageSizeOptions={[5, 10, 20]}
+              refreshToken={refreshToken}
+              keepPreviousData
             />
           </CardContent>
         </Card>
+        <Dialog open={detailsOpen} onOpenChange={setDetailsOpen} modal={false}>
+          <DialogContent className="border border-white/10 bg-black/60 text-white backdrop-blur-md md:left-[calc(50%+8rem)]">
+            <DialogHeader>
+              <DialogTitle>Withdrawal details</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <DialogDescription>Withdrawal method details</DialogDescription>
+              <div className="relative">
+                <Input
+                  value={detailsValue ?? ""}
+                  readOnly
+                  className="pr-24"
+                />
+                <Button
+                  size="sm"
+                  className="absolute right-1 top-1/2 h-7 -translate-y-1/2 px-2"
+                  onClick={async () => {
+                    if (detailsValue) {
+                      await navigator.clipboard.writeText(detailsValue)
+                      toast.success("Copied")
+                    }
+                  }}
+                  disabled={!detailsValue}
+                >
+                  Copy details
+                </Button>
+              </div>
+            </div>
+            {detailsAmount !== null ? (
+              <div className="text-sm text-muted-foreground">
+                Amount requested:{" "}
+                <span className="font-semibold text-white">
+                  ${detailsAmount.toFixed(2)}
+                </span>
+              </div>
+            ) : null}
+            {detailsStatus === "PAID" ? (
+              detailsMethod?.toLowerCase().includes("usdt") ? (
+                detailsTxHash ? (
+                  <Button asChild variant="outline" className="w-full">
+                    <a
+                      href={`https://tronscan.org/#/transaction/${detailsTxHash}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View transaction on Tronscan
+                    </a>
+                  </Button>
+                ) : (
+                  <div className="text-sm text-muted-foreground">
+                    Transaction hash not provided yet.
+                  </div>
+                )
+              ) : detailsReceiptUrl ? (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => handleReceiptDownload(detailsReceiptUrl)}
+                >
+                  Download receipt
+                </Button>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  Receipt not uploaded yet.
+                </div>
+              )
+            ) : detailsMethod?.toLowerCase().includes("usdt") ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Transaction hash</label>
+                <Input
+                  value={txHash}
+                  onChange={(event) => setTxHash(event.target.value)}
+                  placeholder="Paste transaction hash"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Upload payout receipt
+                </label>
+                <input
+                  id={receiptInputId}
+                  type="file"
+                  accept=".png,.jpg,.jpeg,application/pdf"
+                  className="sr-only"
+                  onChange={(event) =>
+                    setReceiptFile(event.target.files?.[0] ?? null)
+                  }
+                />
+                <div className="flex items-center gap-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      document.getElementById(receiptInputId)?.click()
+                    }}
+                    type="button"
+                  >
+                    Choose file
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {receiptFile?.name ?? "No file chosen"}
+                  </span>
+                </div>
+              </div>
+            )}
+            {detailsStatus !== "PAID" ? (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Rejection reason
+                  </label>
+                  <Input
+                    value={rejectReason}
+                    onChange={(event) => setRejectReason(event.target.value)}
+                    placeholder="Provide a reason for rejection"
+                  />
+                </div>
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      if (!detailsId || !rejectReason.trim()) return
+                      try {
+                        await withdrawalService.updateRequest(detailsId, {
+                          status: "REJECTED",
+                          rejectReason: rejectReason.trim(),
+                        })
+                        toast.success("Request rejected")
+                        setDetailsOpen(false)
+                        setRefreshToken((prev) => prev + 1)
+                      } catch {
+                        toast.error("Failed to reject request")
+                      }
+                    }}
+                    disabled={!detailsId || rejectReason.trim().length === 0}
+                  >
+                    Rejected
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!detailsId) return
+                      const isUsdt = detailsMethod?.toLowerCase().includes("usdt")
+                      if (isUsdt && !txHash.trim()) return
+                      if (!isUsdt && !receiptFile) return
+                      try {
+                        let receiptUrl: string | undefined
+                        if (!isUsdt && receiptFile) {
+                          const formData = new FormData()
+                          formData.append("media", receiptFile)
+                          const uploadResponse = await FileService.upload(
+                            formData,
+                            "withdrawals"
+                          )
+                          receiptUrl = uploadResponse.data?.[0]?.url
+                        }
+
+                        await withdrawalService.updateRequest(detailsId, {
+                          status: "PAID",
+                          txHash: isUsdt ? txHash.trim() : undefined,
+                          receiptUrl,
+                        })
+                        toast.success("Request confirmed")
+                        setDetailsOpen(false)
+                        setRefreshToken((prev) => prev + 1)
+                      } catch {
+                        toast.error("Failed to confirm request")
+                      }
+                    }}
+                    disabled={
+                      !detailsId ||
+                      (detailsMethod?.toLowerCase().includes("usdt")
+                        ? !txHash.trim()
+                        : !receiptFile)
+                    }
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              </>
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </div>
     </SidebarInset>
   )

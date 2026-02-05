@@ -4,12 +4,15 @@ import { IUser } from '@/types/user.types'
 export interface IPaginationResponse<T> {
 	items: T[]
 	isHasMore: boolean
+	totalCount?: number
 }
 
 export interface IPaginationParams {
 	skip?: number
 	take?: number
 	searchTerm?: string
+	from_date?: string
+	to_date?: string
 }
 
 export interface IUserFormState extends Partial<Omit<IUser, 'id'>> {

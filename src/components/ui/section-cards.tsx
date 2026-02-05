@@ -29,94 +29,296 @@ import {
 } from "@/components/ui/dialog"
 import paymentService, { type PlanCatalogItem } from "@/services/payment.service"
 import { useProfile } from "@/hooks/useProfile"
+import statisticsService from "@/services/statistics.service"
 
 export function SectionCards() {
+  const { data: summary } = useQuery({
+    queryKey: ["dashboard-summary"],
+    queryFn: () => statisticsService.getDashboardSummary(),
+  })
+
+  const summaryData = summary?.data
+  const totalRevenue = summaryData?.totalRevenue ?? 0
+  const netRevenue = summaryData?.netRevenue ?? 0
+  const currency = summaryData?.currency ?? "USD"
+  const newPartners = summaryData?.newPartners ?? 0
+  const totalPartners = summaryData?.totalPartners ?? 0
+  const growthRate = summaryData?.growthRate ?? 0
+  const activePartners = summaryData?.activePartners ?? 0
+  const conversionRate = summaryData?.conversionRate ?? 0
+  const avgRevenuePerPartner = summaryData?.avgRevenuePerPartner ?? 0
+  const topLineGrowth7d = summaryData?.topLineGrowth7d ?? 0
+  const topLineGrowth30d = summaryData?.topLineGrowth30d ?? 0
+  const payoutRatio = summaryData?.payoutRatio ?? 0
+
+  const revenueLabel = useMemo(() => {
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 2,
+      }).format(totalRevenue)
+    } catch {
+      return `${totalRevenue.toFixed(2)} ${currency}`
+    }
+  }, [currency, totalRevenue])
+
+  const netRevenueLabel = useMemo(() => {
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 2,
+      }).format(netRevenue)
+    } catch {
+      return `${netRevenue.toFixed(2)} ${currency}`
+    }
+  }, [currency, netRevenue])
+
+  const avgRevenueLabel = useMemo(() => {
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 2,
+      }).format(avgRevenuePerPartner)
+    } catch {
+      return `${avgRevenuePerPartner.toFixed(2)} ${currency}`
+    }
+  }, [avgRevenuePerPartner, currency])
+
+  const growthLabel = `${growthRate >= 0 ? "+" : ""}${growthRate.toFixed(1)}%`
+  const growthIcon = growthRate >= 0 ? <TrendingUp /> : <TrendingDown />
+  const payoutRatioLabel = `${payoutRatio.toFixed(1)}%`
+  const conversionLabel = `${conversionRate.toFixed(1)}%`
+
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4 lg:px-6">
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month <TrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Visitors for the last 6 months
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>New Partners</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingDown />
-              -20%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Down 20% this period <TrendingDown className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Acquisition needs attention
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Total Partners</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong user retention <TrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Engagement exceed targets</div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Growth Rate</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingUp />
-              +4.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Steady performance increase <TrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Meets growth projections</div>
-        </CardFooter>
-      </Card>
+    <div className="space-y-4">
+      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4 lg:px-6">
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>Total Revenue</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {revenueLabel}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                {growthIcon}
+                {growthLabel}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Updated from payouts <TrendingUp className="size-4" />
+            </div>
+            <div className="text-muted-foreground">
+              Credits based on wallet transactions
+            </div>
+          </CardFooter>
+        </Card>
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>New Partners</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {newPartners.toLocaleString()}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                {growthIcon}
+                {growthLabel}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              New direct partners (last 30 days) {growthIcon}
+            </div>
+            <div className="text-muted-foreground">
+              Counts based on your active MLM module
+            </div>
+          </CardFooter>
+        </Card>
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>Total Partners</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {totalPartners.toLocaleString()}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                {growthIcon}
+                {growthLabel}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Direct partners in your network {growthIcon}
+            </div>
+            <div className="text-muted-foreground">Engagement exceed targets</div>
+          </CardFooter>
+        </Card>
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>Growth Rate</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {growthLabel}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                {growthIcon}
+                {growthLabel}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Based on last 30 days vs previous period {growthIcon}
+            </div>
+            <div className="text-muted-foreground">Meets growth projections</div>
+          </CardFooter>
+        </Card>
+      </div>
+
+      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-3 lg:px-6">
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>Net Revenue</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {netRevenueLabel}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                {growthIcon}
+                {growthLabel}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Credits minus withdrawals
+            </div>
+            <div className="text-muted-foreground">
+              Net wallet performance
+            </div>
+          </CardFooter>
+        </Card>
+
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>Active Partners</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {activePartners.toLocaleString()}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                {growthIcon}
+                {growthLabel}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Partners with active plans
+            </div>
+            <div className="text-muted-foreground">
+              Engagement quality indicator
+            </div>
+          </CardFooter>
+        </Card>
+
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>Conversion to Paid</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {conversionLabel}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                {growthIcon}
+                {growthLabel}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Active partners ÷ total partners
+            </div>
+            <div className="text-muted-foreground">
+              Measures monetization efficiency
+            </div>
+          </CardFooter>
+        </Card>
+
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>Avg Revenue per Partner</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {avgRevenueLabel}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                {growthIcon}
+                {growthLabel}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Total revenue ÷ total partners
+            </div>
+            <div className="text-muted-foreground">
+              Revenue efficiency per partner
+            </div>
+          </CardFooter>
+        </Card>
+
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>Top Growth</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              +{topLineGrowth30d.toLocaleString()}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                +{topLineGrowth7d.toLocaleString()} / 7d
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              New partners in last 30 days
+            </div>
+            <div className="text-muted-foreground">
+              Short-term momentum (7d)
+            </div>
+          </CardFooter>
+        </Card>
+
+        <Card className="@container/card">
+          <CardHeader>
+            <CardDescription>Payout Ratio</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {payoutRatioLabel}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                {growthIcon}
+                {growthLabel}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Withdrawals ÷ credits
+            </div>
+            <div className="text-muted-foreground">
+              Financial stability check
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -163,6 +163,12 @@ interface DataTableProps<TData extends ExportableData, TValue> {
 
   // Subrows configuration
   subRowsConfig?: SubRowsConfig<TData>;
+
+  // External refresh trigger
+  refreshToken?: number;
+
+  // Keep current rows visible during refetch
+  keepPreviousData?: boolean;
 }
 
 export function DataTable<TData extends ExportableData, TValue>({
@@ -175,7 +181,9 @@ export function DataTable<TData extends ExportableData, TValue>({
   pageSizeOptions,
   renderToolbarContent,
   onRowClick,
-  subRowsConfig
+  subRowsConfig,
+  refreshToken,
+  keepPreviousData = false
 }: DataTableProps<TData, TValue>) {
   // Load table configuration with any overrides
   const tableConfig = useTableConfig(config);
@@ -215,6 +223,7 @@ export function DataTable<TData extends ExportableData, TValue>({
       total_items: number;
     };
   } | null>(null);
+  const dataRef = useRef<typeof data>(null);
 
   // Column order state (managed separately from URL state as it's persisted in localStorage)
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
@@ -237,6 +246,10 @@ export function DataTable<TData extends ExportableData, TValue>({
 
   // Get current data items - memoize to avoid recalculations
   const dataItems = useMemo(() => data?.data || [], [data?.data]);
+
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
 
   // PERFORMANCE FIX: rowSelection is now directly selectedItemIds (no conversion needed)
   // Since getRowId returns actual IDs, TanStack Table uses IDs as keys
@@ -343,7 +356,10 @@ export function DataTable<TData extends ExportableData, TValue>({
       
       const fetchData = async () => {
         try {
-          setIsLoading(true);
+          const hasData = Boolean(dataRef.current);
+          if (!keepPreviousData || !hasData) {
+            setIsLoading(true);
+          }
           
           const result = await (fetchDataFn as (params: DataFetchParams) => Promise<DataFetchResult<TData>>)({
             page,
@@ -368,7 +384,7 @@ export function DataTable<TData extends ExportableData, TValue>({
 
       fetchData();
     }
-  }, [page, pageSize, search, dateRange, sortBy, sortOrder, fetchDataFn]);
+  }, [page, pageSize, search, dateRange, sortBy, sortOrder, fetchDataFn, refreshToken, keepPreviousData]);
 
   // If fetchDataFn is a React Query hook, call it directly with parameters
   const queryResult = (fetchDataFn as { isQueryHook?: boolean }).isQueryHook === true
@@ -758,7 +774,7 @@ export function DataTable<TData extends ExportableData, TValue>({
           </TableHeader>
 
           <TableBody>
-            {isLoading ? (
+            {isLoading && !(keepPreviousData && data?.data?.length) ? (
               // Loading state
               Array.from({ length: pageSize }).map((_, i) => (
                 <TableRow

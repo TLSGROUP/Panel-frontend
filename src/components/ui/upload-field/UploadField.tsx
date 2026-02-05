@@ -1,6 +1,6 @@
 import { CSSProperties, FC } from 'react'
 
-import { SERVER_URL } from '@/constants/main.constants'
+import { BACKEND_MAIN } from '@/constants'
 import { FieldError } from 'react-hook-form'
 import Skeleton from 'react-loading-skeleton'
 import { useUpload } from './useUpload'
@@ -44,7 +44,7 @@ const UploadField: FC<IUploadField> = ({
 								<img
 									alt=''
 									className='rounded-md mt-3'
-									src={value.includes('http') ? value : SERVER_URL + value}
+									src={value.includes('http') ? value : BACKEND_MAIN + value}
 									width={100}
 									height={100}
 								/>

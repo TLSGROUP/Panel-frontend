@@ -1,6 +1,6 @@
 import type { FieldErrors, UseFormRegister } from 'react-hook-form'
 
-import { Field } from '@/components/ui/field/Field'
+import { Input } from '@/components/ui/input'
 import type { IUserFormState } from '../user-form.types'
 
 const validEmail =
@@ -14,19 +14,37 @@ export function UserMainFields({
 	register: UseFormRegister<IUserFormState>
 }) {
 	return (
-		<div className='grid min-lg:grid-cols-2 gap-5'>
-			<Field
-				{...register('email', {
-					required: 'Email is required field!',
-					pattern: {
-						value: validEmail,
-						message: 'Пожалуйста введите валидный Email',
-					},
-				})}
-				placeholder='Email'
-				autoComplete='none'
-			/>
-			<Field {...register('password')} placeholder='Password' type='password' />
+		<div className='grid min-lg:grid-cols-2 gap-6'>
+			<div className='space-y-2'>
+				<p className='text-sm text-muted-foreground'>Name</p>
+				<Input {...register('name')} placeholder='Not provided' />
+			</div>
+			<div className='space-y-2'>
+				<p className='text-sm text-muted-foreground'>Last name</p>
+				<Input {...register('lastName')} placeholder='Not provided' />
+			</div>
+			<div className='space-y-2'>
+				<p className='text-sm text-muted-foreground'>Email</p>
+				<Input
+					{...register('email', {
+						required: 'Email is required field!',
+						pattern: {
+							value: validEmail,
+							message: 'Пожалуйста введите валидный Email',
+						},
+					})}
+					placeholder='Not provided'
+					autoComplete='none'
+				/>
+			</div>
+			<div className='space-y-2'>
+				<p className='text-sm text-muted-foreground'>Password</p>
+				<Input
+					{...register('password')}
+					placeholder='••••••••'
+					type='password'
+				/>
+			</div>
 		</div>
 	)
 }

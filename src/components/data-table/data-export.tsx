@@ -508,7 +508,7 @@ export function DataTableExport<TData extends ExportableData>({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size={size} disabled={isLoading}>
           {isLoading ? (
