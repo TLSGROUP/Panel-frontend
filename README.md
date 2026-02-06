@@ -1,5 +1,13 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Production Env
+
+Set production variables by copying `frontend/.env.example` to `.env` and updating values:
+- `NEXT_PUBLIC_BACKEND_MAIN=https://panel.lunadesire.com`
+- `NEXT_PUBLIC_COOKIE_DOMAIN=panel.lunadesire.com`
+- `NEXT_PUBLIC_COOKIE_SECURE=true`
+- `NEXT_PUBLIC_COOKIE_SAMESITE=lax`
+
 ## Getting Started
 
 First, run the development server:

@@ -193,27 +193,42 @@ export default function AdminManagementPage() {
     },
   ], [])
 
-  const fetchRequests = useCallback(
-    async (
-      page: number,
-      limit: number,
-      search: string,
-      dateRange: { from_date: string; to_date: string },
-      sort_by: string,
-      sort_order: string
-    ) => {
-      return withdrawalService.fetchRequests({
-        page,
-        limit,
-        search,
-        from_date: dateRange.from_date,
-        to_date: dateRange.to_date,
-        sort_by,
-        sort_order: sort_order as "asc" | "desc" | undefined,
-      })
-    },
-    []
-  )
+  type RequestsFetchArgs =
+    | [WithdrawalsParams]
+    | [
+        number,
+        number,
+        string,
+        { from_date: string; to_date: string },
+        string,
+        string,
+        unknown?,
+      ]
+
+  const fetchRequests = useCallback(async (...args: RequestsFetchArgs) => {
+    const params: WithdrawalsParams =
+      typeof args[0] === "number"
+        ? {
+            page: args[0],
+            limit: args[1] ?? 10,
+            search: args[2] ?? "",
+            from_date: args[3]?.from_date ?? "",
+            to_date: args[3]?.to_date ?? "",
+            sort_by: args[4] ?? "createdAt",
+            sort_order: (args[5] as "asc" | "desc" | undefined) ?? "desc",
+          }
+        : args[0]
+
+    return withdrawalService.fetchRequests({
+      page: params.page,
+      limit: params.limit,
+      search: params.search,
+      from_date: params.from_date,
+      to_date: params.to_date,
+      sort_by: params.sort_by,
+      sort_order: params.sort_order as "asc" | "desc" | undefined,
+    })
+  }, [])
 
   const handleReceiptDownload = useCallback(async (receiptUrl: string) => {
     try {
