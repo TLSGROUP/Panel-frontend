@@ -8,7 +8,7 @@ import { loadStripe } from "@stripe/stripe-js"
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js"
 import { FaPaypal } from "react-icons/fa"
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/Badge"
 import {
   Card,
   CardAction,

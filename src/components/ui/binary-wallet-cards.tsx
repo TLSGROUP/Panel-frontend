@@ -4,7 +4,7 @@ import { useMemo } from "react"
 import { TrendingDown, TrendingUp } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/Badge"
 import {
   Card,
   CardAction,
