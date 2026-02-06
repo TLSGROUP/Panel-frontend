@@ -1,5 +1,6 @@
 'use server'
 
+import { API_URL } from '@/constants'
 import { ITokenInside } from '@/types/auth.types'
 import { transformUserToState } from '@/utils/transform-user-to-state'
 import * as jose from 'jose'
@@ -13,6 +14,18 @@ export async function jwtVerifyServer(accessToken: string) {
 		)
 
 		if (!payload) return null
+
+		const profileResponse = await fetch(`${API_URL}/users/profile`, {
+			method: 'GET',
+			headers: {
+				Authorization: `Bearer ${accessToken}`
+			},
+			cache: 'no-store'
+		})
+
+		if (!profileResponse.ok) {
+			return null
+		}
 
 		return transformUserToState(payload)
 	} catch (error) {

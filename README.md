@@ -6,7 +6,7 @@ Set production variables by copying `frontend/.env.example` to `.env` and updati
 - `NEXT_PUBLIC_BACKEND_MAIN=https://panel.lunadesire.com`
 - `NEXT_PUBLIC_COOKIE_DOMAIN=panel.lunadesire.com`
 - `NEXT_PUBLIC_COOKIE_SECURE=true`
-- `NEXT_PUBLIC_COOKIE_SAMESITE=lax`
+- `NEXT_PUBLIC_COOKIE_SAMESITE=lax````
 
 ## Getting Started
 
